@@ -38,24 +38,24 @@ INITIALIZE-BALANCE SECTION.
         WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
         DISPLAY "Init File status: " FILE-STATUS
         CLOSE BALANCE-FILE
+        OPEN INPUT BALANCE-FILE  *> Reopen for reading
+        IF FILE-STATUS = "00"
+            READ BALANCE-FILE
+                AT END
+                    DISPLAY "Init read failed, forcing default."
+                    MOVE 10000.00 TO BALANCE-AMOUNT
+                    MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
+                    CLOSE BALANCE-FILE
+                    OPEN OUTPUT BALANCE-FILE
+                    WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
+                    CLOSE BALANCE-FILE
+                NOT AT END
+                    MOVE BALANCE-AMOUNT TO WS-BALANCE
+            END-READ
+            CLOSE BALANCE-FILE
+        END-IF
     ELSE
         DISPLAY "Failed to initialize balance.dat. Status: " FILE-STATUS
-    END-IF
-    OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE
-            AT END
-                DISPLAY "Init read failed, forcing default."
-                MOVE 10000.00 TO BALANCE-AMOUNT
-                MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
-                CLOSE BALANCE-FILE
-                OPEN OUTPUT BALANCE-FILE
-                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
-                CLOSE BALANCE-FILE
-            NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
-        END-READ
-        CLOSE BALANCE-FILE
     END-IF.
 
 GET-INPUT SECTION.
@@ -65,48 +65,11 @@ GET-INPUT SECTION.
             AT END
                 DISPLAY "File empty, using default balance."
                 MOVE 10000.00 TO WS-BALANCE
+                MOVE WS-BALANCE TO BALANCE-AMOUNT
+                MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
+                CLOSE BALANCE-FILE
+                OPEN OUTPUT BALANCE-FILE
+                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
+                CLOSE BALANCE-FILE
             NOT AT END
                 MOVE BALANCE-AMOUNT TO WS-BALANCE
-                DISPLAY "Read balance: $" WS-BALANCE
-        END-READ
-        CLOSE BALANCE-FILE
-    ELSE
-        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
-        MOVE 10000.00 TO WS-BALANCE
-    END-IF
-    DISPLAY "Current Balance: $" WS-BALANCE
-    DISPLAY "Enter sender name: "
-    ACCEPT SENDER
-    DISPLAY "Enter receiver name: "
-    ACCEPT RECEIVER
-    DISPLAY "Enter amount to send: "
-    ACCEPT AMOUNT.
-
-PROCESS-TRANSACTION SECTION.
-    IF AMOUNT IS NUMERIC
-        IF AMOUNT > WS-BALANCE
-            DISPLAY "Insufficient funds. Transaction cancelled."
-        ELSE
-            SUBTRACT AMOUNT FROM WS-BALANCE
-            DISPLAY "Processing transaction..."
-            DISPLAY "From: " SENDER
-            DISPLAY "To: " RECEIVER
-            DISPLAY "Amount: $" AMOUNT
-            DISPLAY "New Balance: $" WS-BALANCE
-            MOVE WS-BALANCE TO BALANCE-AMOUNT
-            MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
-            OPEN OUTPUT BALANCE-FILE
-            IF FILE-STATUS = "00"
-                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
-                DISPLAY "Write File status: " FILE-STATUS
-                CLOSE BALANCE-FILE
-            ELSE
-                DISPLAY "Failed to write balance.dat. Status: " FILE-STATUS
-            END-IF
-            DISPLAY "Transaction sent successfully!"
-        END-IF
-    ELSE
-        DISPLAY "Invalid amount entered. Must be a number."
-    END-IF.
-
-END PROGRAM XRP-PROCESSOR.
