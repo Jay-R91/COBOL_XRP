@@ -3,13 +3,10 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-           01 SENDER             PIC X(20).
-           01 RECEIVER           PIC X(20).
-           01 AMOUNT             PIC 9(5)V99.
-           01 BALANCE            PIC 9(5)V99 VALUE 10000.00.
-           01 AMOUNT-DISPLAY     PIC X(30).
-           01 BALANCE-DISPLAY    PIC X(40).
-           01 PTR                PIC 9(3).
+       01 SENDER             PIC X(20).
+       01 RECEIVER           PIC X(20).
+       01 AMOUNT             PIC 9(5)V99.
+       01 BALANCE            PIC 9(5)V99 VALUE 10000.00.
 
        PROCEDURE DIVISION.
            DISPLAY "Enter sender name: ".
@@ -24,33 +21,15 @@
            IF AMOUNT > BALANCE
                DISPLAY "Error: Insufficient funds. Transaction cancelled."
            ELSE
-               DISPLAY "Processing transaction...".
+               DISPLAY "Transaction in progress...".
                DISPLAY "From: " SENDER.
                DISPLAY "To: " RECEIVER.
-
-               MOVE SPACES TO AMOUNT-DISPLAY.
-               MOVE 1 TO PTR.
-               STRING
-                   "Amount: $" DELIMITED BY SIZE
-                   AMOUNT     DELIMITED BY SIZE
-                   INTO AMOUNT-DISPLAY
-                   WITH POINTER PTR
-               END-STRING.
-               DISPLAY AMOUNT-DISPLAY.
-
-               DISPLAY "Transaction sent successfully!".
-
+               DISPLAY "Amount sent: $".
+               DISPLAY AMOUNT.
                SUBTRACT AMOUNT FROM BALANCE GIVING BALANCE.
-
-               MOVE SPACES TO BALANCE-DISPLAY.
-               MOVE 1 TO PTR.
-               STRING
-                   "Remaining balance: $" DELIMITED BY SIZE
-                   BALANCE               DELIMITED BY SIZE
-                   INTO BALANCE-DISPLAY
-                   WITH POINTER PTR
-               END-STRING.
-               DISPLAY BALANCE-DISPLAY.
+               DISPLAY "Transaction sent successfully!".
+               DISPLAY "Remaining balance: $".
+               DISPLAY BALANCE.
            END-IF.
 
            STOP RUN.
