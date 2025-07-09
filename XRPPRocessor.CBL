@@ -11,39 +11,30 @@ DATA DIVISION.
 
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD       PIC Z(4)9.99.
+01 BALANCE-RECORD       PIC 9(5)V99.
 
 WORKING-STORAGE SECTION.
-01 AMOUNT               PIC Z(4)9.99.
+01 AMOUNT               PIC 9(5)V99 VALUE 0.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
-01 EOF-FLAG             PIC X VALUE 'N'.
-   88 END-OF-FILE       VALUE 'Y'.
-   88 NOT-END-OF-FILE   VALUE 'N'.
+01 FILE-STATUS-CODE     PIC XX.
+    88 FILE-OK           VALUE "00".
+    88 FILE-NOT-FOUND    VALUE "35".
 
 PROCEDURE DIVISION.
-    PERFORM INIT-BALANCE.
-    PERFORM PROCESS-TRANSACTION.
-    STOP RUN.
 
-INIT-BALANCE.
-    OPEN INPUT BALANCE-FILE
-        ON EXCEPTION
-            MOVE 10000.00 TO BALANCE-RECORD.
-            OPEN OUTPUT BALANCE-FILE.
-            WRITE BALANCE-RECORD.
-            CLOSE BALANCE-FILE.
-            OPEN INPUT BALANCE-FILE.
-    END-EXCEPTION.
+MAIN-PROCESS.
+    MOVE 10000.00 TO BALANCE-RECORD.
 
-    READ BALANCE-FILE
-        AT END
-            MOVE 10000.00 TO BALANCE-RECORD.
-    END-READ.
+    OPEN INPUT BALANCE-FILE.
+    IF FILE-STATUS-CODE = FILE-OK
+        READ BALANCE-FILE
+            AT END
+                CONTINUE
+        END-READ
+        CLOSE BALANCE-FILE
+    END-IF.
 
-    CLOSE BALANCE-FILE.
-
-PROCESS-TRANSACTION.
     DISPLAY "Current Balance: $" BALANCE-RECORD.
     DISPLAY "Enter sender name: ".
     ACCEPT SENDER.
@@ -52,25 +43,26 @@ PROCESS-TRANSACTION.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT IS NOT NUMERIC
-        DISPLAY "Invalid amount entered. Must be a number."
-        STOP RUN.
-    END-IF.
+    IF AMOUNT IS NUMERIC
+        EVALUATE TRUE
+            WHEN AMOUNT > BALANCE-RECORD
+                DISPLAY "Insufficient funds. Transaction cancelled."
+            WHEN OTHER
+                SUBTRACT AMOUNT FROM BALANCE-RECORD
+                DISPLAY "Processing transaction..."
+                DISPLAY "From: " SENDER
+                DISPLAY "To: " RECEIVER
+                DISPLAY "Amount: $" AMOUNT
+                DISPLAY "New Balance: $" BALANCE-RECORD
 
-    EVALUATE TRUE
-        WHEN AMOUNT > BALANCE-RECORD
-            DISPLAY "Insufficient funds. Transaction cancelled.".
-        WHEN OTHER
-            SUBTRACT AMOUNT FROM BALANCE-RECORD.
-            DISPLAY "Processing transaction...".
-            DISPLAY "From: " SENDER.
-            DISPLAY "To: " RECEIVER.
-            DISPLAY "Amount: $" AMOUNT.
-            DISPLAY "New Balance: $" BALANCE-RECORD.
-            OPEN OUTPUT BALANCE-FILE.
-            WRITE BALANCE-RECORD.
-            CLOSE BALANCE-FILE.
-            DISPLAY "Transaction sent successfully!".
-    END-EVALUATE.
+                OPEN OUTPUT BALANCE-FILE
+                WRITE BALANCE-RECORD
+                CLOSE BALANCE-FILE
+
+                DISPLAY "Transaction sent successfully!"
+        END-EVALUATE
+    ELSE
+        DISPLAY "Invalid amount entered. Must be a number."
+    END-IF.
 
     STOP RUN.
