@@ -41,6 +41,7 @@ PROCEDURE DIVISION.
     EVALUATE TRUE
         WHEN AMOUNT > BALANCE-RECORD
             DISPLAY "Insufficient funds. Transaction cancelled.".
+    EVALUATE TRUE
         WHEN OTHER
             SUBTRACT AMOUNT FROM BALANCE-RECORD.
             DISPLAY "Processing transaction...".
