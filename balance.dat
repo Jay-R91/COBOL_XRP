@@ -39,6 +39,20 @@ INITIALIZE-BALANCE SECTION.
     ELSE
         DISPLAY "Failed to initialize balance.dat. Status: " FILE-STATUS
         CLOSE BALANCE-FILE
+    END-IF
+    OPEN INPUT BALANCE-FILE
+    IF FILE-STATUS = "00"
+        READ BALANCE-FILE
+            AT END
+                DISPLAY "Init read failed, forcing default."
+                MOVE 10000.00 TO BALANCE-AMOUNT
+                CLOSE BALANCE-FILE
+                OPEN OUTPUT BALANCE-FILE
+                WRITE BALANCE-RECORD
+                CLOSE BALANCE-FILE
+            NOT AT END
+                CLOSE BALANCE-FILE
+        END-READ
     END-IF.
 
 GET-INPUT SECTION.
@@ -84,6 +98,14 @@ PROCESS-TRANSACTION SECTION.
                 CLOSE BALANCE-FILE
             ELSE
                 DISPLAY "Failed to rewrite balance.dat. Status: " FILE-STATUS
+            END-IF
+            DISPLAY "Transaction sent successfully!"
+        END-IF
+    ELSE
+        DISPLAY "Invalid amount entered. Must be a number."
+    END-IF.
+
+END PROGRAM XRP-PROCESSOR.
             END-IF
             DISPLAY "Transaction sent successfully!"
         END-IF
