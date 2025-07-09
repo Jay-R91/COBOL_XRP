@@ -22,16 +22,16 @@
            ACCEPT AMOUNT.
 
            IF AMOUNT > BALANCE
-               DISPLAY "Error: Insufficient funds. Transaction cancelled."
+               DISPLAY "Error: Insufficient funds. Transaction cancelled.".
            ELSE
                DISPLAY "Processing transaction...".
-               DISPLAY SENDER.
-               DISPLAY RECEIVER.
+               DISPLAY "From: " SENDER.
+               DISPLAY "To: " RECEIVER.
 
                MOVE SPACES TO AMOUNT-DISPLAY.
                MOVE 1 TO PTR.
-               STRING "Amount: $" DELIMITED BY SIZE,
-                      AMOUNT      DELIMITED BY SIZE
+               STRING "Amount: $" DELIMITED BY SIZE
+                      AMOUNT     DELIMITED BY SIZE
                       INTO AMOUNT-DISPLAY
                       WITH POINTER PTR.
                DISPLAY AMOUNT-DISPLAY.
@@ -42,7 +42,7 @@
 
                MOVE SPACES TO BALANCE-DISPLAY.
                MOVE 1 TO PTR.
-               STRING "Remaining balance: $" DELIMITED BY SIZE,
+               STRING "Remaining balance: $" DELIMITED BY SIZE
                       BALANCE              DELIMITED BY SIZE
                       INTO BALANCE-DISPLAY
                       WITH POINTER PTR.
