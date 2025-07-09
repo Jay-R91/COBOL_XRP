@@ -47,11 +47,9 @@ PROCEDURE DIVISION.
         DISPLAY "To: " RECEIVER.
         DISPLAY "Amount: $" AMOUNT.
         DISPLAY "New Balance: $" BALANCE-RECORD.
-        
         OPEN OUTPUT BALANCE-FILE.
         WRITE BALANCE-RECORD.
         CLOSE BALANCE-FILE.
-
         DISPLAY "Transaction sent successfully!".
     END-IF.
 
