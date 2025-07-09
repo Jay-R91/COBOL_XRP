@@ -15,9 +15,12 @@ DISPLAY "Enter receiver name: ".
 ACCEPT RECEIVER.
 DISPLAY "Enter amount to send: ".
 ACCEPT AMOUNT.
+IF AMOUNT > BALANCE
+    DISPLAY "Error: Insufficient funds. Transaction cancelled."
 DISPLAY "Processing transaction...".
 DISPLAY "From: " SENDER.
 DISPLAY "To: " RECEIVER.
 DISPLAY "Amount: $" AMOUNT.
+01 BALANCE     PIC 9(5)V99 VALUE 10000.00.
 DISPLAY "Transaction sent successfully!".
   STOP RUN.
