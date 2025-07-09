@@ -23,8 +23,8 @@ WORKING-STORAGE SECTION.
     88 FILE-NOT-FOUND    VALUE "35".
 
 PROCEDURE DIVISION.
-
 MAIN-PROCESS.
+
     MOVE 10000.00 TO BALANCE-RECORD.
 
     OPEN INPUT BALANCE-FILE.
@@ -33,7 +33,11 @@ MAIN-PROCESS.
             AT END
                 CONTINUE
         END-READ
-        CLOSE BALANCE-FILE
+        CLOSE BALANCE-FILE.
+    ELSE
+        OPEN OUTPUT BALANCE-FILE
+        WRITE BALANCE-RECORD
+        CLOSE BALANCE-FILE.
     END-IF.
 
     DISPLAY "Current Balance: $" BALANCE-RECORD.
@@ -44,24 +48,23 @@ MAIN-PROCESS.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT IS NUMERIC
-        EVALUATE TRUE
-            WHEN AMOUNT > BALANCE-RECORD
-                DISPLAY "Insufficient funds. Transaction cancelled.".
-            WHEN OTHER
-                SUBTRACT AMOUNT FROM BALANCE-RECORD.
-                DISPLAY "Processing transaction...".
-                DISPLAY "From: " SENDER.
-                DISPLAY "To: " RECEIVER.
-                DISPLAY "Amount: $" AMOUNT.
-                DISPLAY "New Balance: $" BALANCE-RECORD.
+    IF AMOUNT IS NUMERIC THEN
+        IF AMOUNT > BALANCE-RECORD THEN
+            DISPLAY "Insufficient funds. Transaction cancelled.".
+        ELSE
+            SUBTRACT AMOUNT FROM BALANCE-RECORD.
+            DISPLAY "Processing transaction...".
+            DISPLAY "From: " SENDER.
+            DISPLAY "To: " RECEIVER.
+            DISPLAY "Amount: $" AMOUNT.
+            DISPLAY "New Balance: $" BALANCE-RECORD.
 
-                OPEN OUTPUT BALANCE-FILE.
-                WRITE BALANCE-RECORD.
-                CLOSE BALANCE-FILE.
+            OPEN OUTPUT BALANCE-FILE.
+            WRITE BALANCE-RECORD.
+            CLOSE BALANCE-FILE.
 
-                DISPLAY "Transaction sent successfully!".
-        END-EVALUATE
+            DISPLAY "Transaction sent successfully!".
+        END-IF.
     ELSE
         DISPLAY "Invalid amount entered. Must be a number.".
     END-IF.
