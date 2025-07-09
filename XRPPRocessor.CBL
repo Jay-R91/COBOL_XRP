@@ -10,12 +10,13 @@ WORKING-STORAGE SECTION.
 01 AMOUNT      PIC 9(5)V99.
 01 BALANCE     PIC 9(5)V99 VALUE 10000.00.
 PROCEDURE DIVISION.
-        DISPLAY "Enter sender name: ".
+    DISPLAY "Enter sender name: ".
 ACCEPT SENDER.
-        DISPLAY "Enter receiver name: ".
+    DISPLAY "Enter receiver name: ".    
 ACCEPT RECEIVER.
-        DISPLAY "Enter amount to send: ".
+    DISPLAY "Enter amount to send: ".    
 ACCEPT AMOUNT.
+
     IF AMOUNT > BALANCE
         DISPLAY "Error: Insufficient funds. Transaction cancelled."
     ELSE
@@ -25,9 +26,5 @@ ACCEPT AMOUNT.
         DISPLAY "Amount: $" AMOUNT.
         DISPLAY "Transaction sent successfully!".
     END-IF.
-        DISPLAY "Processing transaction...".
-        DISPLAY "From: " SENDER.
-        DISPLAY "To: " RECEIVER.
-        DISPLAY "Amount: $" AMOUNT.
-        DISPLAY "Transaction sent successfully!".
-  STOP RUN.
+
+    STOP RUN.
