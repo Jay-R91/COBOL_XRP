@@ -53,6 +53,5 @@ PROCEDURE DIVISION.
             CLOSE BALANCE-FILE.
             DISPLAY "Transaction sent successfully!".
     END-EVALUATE.
-    END-IF.
 
     STOP RUN.
