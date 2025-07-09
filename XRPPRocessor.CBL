@@ -26,10 +26,7 @@ PROCEDURE DIVISION.
         DISPLAY "Processing transaction...".
         DISPLAY "From: " SENDER.
         DISPLAY "To: " RECEIVER.
-        DISPLAY "Amount: $" 
-        MOVE "Amount: $" TO AMOUNT-DISPLAY.
-        STRING AMOUNT DELIMITED BY SIZE INTO AMOUNT-DISPLAY WITH POINTER 9.
-        DISPLAY AMOUNT-DISPLAY.
+        DISPLAY "Amount: $".
         DISPLAY "Transaction sent successfully!".
     END-IF.
 
