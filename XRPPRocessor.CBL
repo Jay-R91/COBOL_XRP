@@ -39,8 +39,8 @@ MAIN-PROCESS.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT IS NUMERIC
-        IF AMOUNT > BALANCE-RECORD
+    IF AMOUNT IS NUMERIC THEN
+        IF AMOUNT > BALANCE-RECORD THEN
             DISPLAY "Insufficient funds. Transaction cancelled.".
         ELSE
             SUBTRACT AMOUNT FROM BALANCE-RECORD.
@@ -48,12 +48,10 @@ MAIN-PROCESS.
             DISPLAY "From: " SENDER.
             DISPLAY "To: " RECEIVER.
             DISPLAY "Amount: $" AMOUNT.
-            DISPLAY "New Balance: $" BALANCE-RECORD.
-
+            DISPLAY "New Balance: $" BALANCE-RECORD
             OPEN OUTPUT BALANCE-FILE.
             WRITE BALANCE-RECORD.
             CLOSE BALANCE-FILE.
-
             DISPLAY "Transaction sent successfully!".
         END-IF.
     ELSE
