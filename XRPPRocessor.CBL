@@ -1,35 +1,58 @@
 IDENTIFICATION DIVISION.
 PROGRAM-ID. XRP-PROCESSOR.
 
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+    SELECT BALANCE-FILE ASSIGN TO "balance.dat"
+        ORGANIZATION IS LINE SEQUENTIAL.
+
 DATA DIVISION.
+
+FILE SECTION.
+FD BALANCE-FILE.
+01 BALANCE-RECORD       PIC 9(5)V99.
+
 WORKING-STORAGE SECTION.
-01 SENDER      PIC X(20).
-01 RECEIVER    PIC X(20).
-01 AMOUNT      PIC 9(5)V99.
-01 BALANCE     PIC 9(5)V99 VALUE 10000.00.
+01 AMOUNT               PIC 9(5)V99.
+01 SENDER               PIC X(20).
+01 RECEIVER             PIC X(20).
+01 EOF-FLAG             PIC X VALUE 'N'.
+   88 END-OF-FILE       VALUE 'Y'.
+   88 NOT-END-OF-FILE   VALUE 'N'.
 
 PROCEDURE DIVISION.
-DISPLAY "Enter sender name:"
-ACCEPT SENDER
+MAIN-PROCESS.
+    OPEN INPUT BALANCE-FILE.
+    READ BALANCE-FILE
+        AT END
+            MOVE 10000.00 TO BALANCE-RECORD
+    END-READ.
+    CLOSE BALANCE-FILE.
 
-DISPLAY "Enter receiver name:"
-ACCEPT RECEIVER
+    DISPLAY "Current Balance: $" BALANCE-RECORD.
+    DISPLAY "Enter sender name: ".
+    ACCEPT SENDER.
+    DISPLAY "Enter receiver name: ".
+    ACCEPT RECEIVER.
+    DISPLAY "Enter amount to send: ".
+    ACCEPT AMOUNT.
 
-DISPLAY "Enter amount to send:"
-ACCEPT AMOUNT
+    IF AMOUNT > BALANCE-RECORD
+        DISPLAY "Insufficient funds. Transaction cancelled."
+    ELSE
+        SUBTRACT AMOUNT FROM BALANCE-RECORD
+        DISPLAY "Processing transaction...".
+        DISPLAY "From: " SENDER.
+        DISPLAY "To: " RECEIVER.
+        DISPLAY "Amount: $" AMOUNT.
+        DISPLAY "New Balance: $" BALANCE-RECORD.
+        
+        OPEN OUTPUT BALANCE-FILE
+        WRITE BALANCE-RECORD
+        CLOSE BALANCE-FILE
 
-IF AMOUNT > BALANCE
-    DISPLAY "Error: Insufficient funds. Transaction cancelled."
-ELSE
-    DISPLAY "Sending funds..."
-    DISPLAY "From:" SENDER
-    DISPLAY "To:" RECEIVER
-    DISPLAY "Amount sent:"
-    DISPLAY AMOUNT
-    SUBTRACT AMOUNT FROM BALANCE GIVING BALANCE
-    DISPLAY "Transaction sent successfully!"
-    DISPLAY "Remaining balance:"
-    DISPLAY BALANCE
-END-IF
+        DISPLAY "Transaction sent successfully!"
+    END-IF.
 
-STOP RUN.
+    STOP RUN.
