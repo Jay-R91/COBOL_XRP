@@ -20,19 +20,22 @@ WORKING-STORAGE SECTION.
 
 PROCEDURE DIVISION.
 
-MAIN-PROCESS.
+    PERFORM INIT-BALANCE.
+    PERFORM GET-INPUT.
+    PERFORM PROCESS-TRANSACTION.
+    STOP RUN.
 
+INIT-BALANCE.
     OPEN INPUT BALANCE-FILE.
-    READ BALANCE-FILE 
-        AT END 
-            MOVE 10000.00 TO BALANCE-RECORD
-            CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE
-            WRITE BALANCE-RECORD
-            CLOSE BALANCE-FILE
-    END-READ.
+    READ BALANCE-FILE AT END
+        MOVE 10000.00 TO BALANCE-RECORD
+        CLOSE BALANCE-FILE
+        OPEN OUTPUT BALANCE-FILE
+        WRITE BALANCE-RECORD
+        CLOSE BALANCE-FILE.
     CLOSE BALANCE-FILE.
 
+GET-INPUT.
     DISPLAY "Current Balance: $" BALANCE-RECORD.
     DISPLAY "Enter sender name: ".
     ACCEPT SENDER.
@@ -41,23 +44,22 @@ MAIN-PROCESS.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
+PROCESS-TRANSACTION.
     IF AMOUNT IS NUMERIC THEN
         IF AMOUNT > BALANCE-RECORD THEN
-            DISPLAY "Insufficient funds. Transaction cancelled."
+            DISPLAY "Insufficient funds. Transaction cancelled.".
         ELSE
-            SUBTRACT AMOUNT FROM BALANCE-RECORD
-            DISPLAY "Processing transaction..."
-            DISPLAY "From: " SENDER
-            DISPLAY "To: " RECEIVER
-            DISPLAY "Amount: $" AMOUNT
-            DISPLAY "New Balance: $" BALANCE-RECORD
-            OPEN OUTPUT BALANCE-FILE
-            WRITE BALANCE-RECORD
-            CLOSE BALANCE-FILE
-            DISPLAY "Transaction sent successfully!"
-        END-IF
+            SUBTRACT AMOUNT FROM BALANCE-RECORD.
+            DISPLAY "Processing transaction...".
+            DISPLAY "From: " SENDER.
+            DISPLAY "To: " RECEIVER.
+            DISPLAY "Amount: $" AMOUNT.
+            DISPLAY "New Balance: $" BALANCE-RECORD.
+            OPEN OUTPUT BALANCE-FILE.
+            WRITE BALANCE-RECORD.
+            CLOSE BALANCE-FILE.
+            DISPLAY "Transaction sent successfully!".
+        END-IF.
     ELSE
-        DISPLAY "Invalid amount entered. Must be a number."
+        DISPLAY "Invalid amount entered. Must be a number.".
     END-IF.
-
-    STOP RUN.
