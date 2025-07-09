@@ -20,9 +20,4 @@ DISPLAY "From: " SENDER.
 DISPLAY "To: " RECEIVER.
 DISPLAY "Amount: $" AMOUNT.
 DISPLAY "Transaction sent successfully!".
-STOP RUN.
-
-
-
-DISPLAY 'Hello, XRP!'.
   STOP RUN.
