@@ -21,6 +21,7 @@ WORKING-STORAGE SECTION.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 WS-BALANCE           PIC 9(5)V99.
+01 WS-OUTPUT-RECORD     PIC Z(5)9.99.  *> Formatted for display with decimal
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -31,13 +32,30 @@ MAIN-PROCEDURE SECTION.
 
 INITIALIZE-BALANCE SECTION.
     OPEN OUTPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
+    IF FILE-STATUS = "00" OR FILE-STATUS = "35"  *> 35 = file not found
         MOVE 10000.00 TO BALANCE-AMOUNT
-        WRITE BALANCE-RECORD
+        MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
+        WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
         DISPLAY "Init File status: " FILE-STATUS
         CLOSE BALANCE-FILE
+        OPEN INPUT BALANCE-FILE  *> Reopen for reading
+        IF FILE-STATUS = "00"
+            READ BALANCE-FILE
+                AT END
+                    DISPLAY "Init read failed, forcing default."
+                    MOVE 10000.00 TO BALANCE-AMOUNT
+                    MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
+                    CLOSE BALANCE-FILE
+                    OPEN OUTPUT BALANCE-FILE
+                    WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
+                    CLOSE BALANCE-FILE
+                NOT AT END
+                    MOVE BALANCE-AMOUNT TO WS-BALANCE
+            END-READ
+            CLOSE BALANCE-FILE
+        END-IF
     ELSE
-        DISPLAY "Failed to open balance.dat for init. Status: " FILE-STATUS
+        DISPLAY "Failed to initialize balance.dat. Status: " FILE-STATUS
     END-IF.
 
 GET-INPUT SECTION.
@@ -47,6 +65,12 @@ GET-INPUT SECTION.
             AT END
                 DISPLAY "File empty, using default balance."
                 MOVE 10000.00 TO WS-BALANCE
+                MOVE WS-BALANCE TO BALANCE-AMOUNT
+                MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
+                CLOSE BALANCE-FILE
+                OPEN OUTPUT BALANCE-FILE
+                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
+                CLOSE BALANCE-FILE
             NOT AT END
                 MOVE BALANCE-AMOUNT TO WS-BALANCE
                 DISPLAY "Read balance: $" WS-BALANCE
@@ -76,9 +100,10 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "Amount: $" AMOUNT
             DISPLAY "New Balance: $" WS-BALANCE
             MOVE WS-BALANCE TO BALANCE-AMOUNT
+            MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
             OPEN OUTPUT BALANCE-FILE
             IF FILE-STATUS = "00"
-                WRITE BALANCE-RECORD
+                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
                 DISPLAY "Write File status: " FILE-STATUS
                 CLOSE BALANCE-FILE
             ELSE
