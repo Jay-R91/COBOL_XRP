@@ -29,7 +29,9 @@ MAIN-PROCESS.
         OPEN OUTPUT BALANCE-FILE
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE.
-    CLOSE BALANCE-FILE.
+    NOT AT END
+        CLOSE BALANCE-FILE
+    END READ.
 
     DISPLAY "Current Balance: $" BALANCE-RECORD.
     DISPLAY "Enter sender name: ".
@@ -39,23 +41,23 @@ MAIN-PROCESS.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT IS NUMERIC THEN
+    IF AMOUNT IS NUMERIC 
         IF AMOUNT > BALANCE-RECORD THEN
-            DISPLAY "Insufficient funds. Transaction cancelled.".
+            DISPLAY "Insufficient funds. Transaction cancelled."
         ELSE.
-            SUBTRACT AMOUNT FROM BALANCE-RECORD.
-            DISPLAY "Processing transaction...".
-            DISPLAY "From: " SENDER.
-            DISPLAY "To: " RECEIVER.
-            DISPLAY "Amount: $" AMOUNT.
-            DISPLAY "New Balance: $" BALANCE-RECORD.
-            OPEN OUTPUT BALANCE-FILE.
-            WRITE BALANCE-RECORD.
-            CLOSE BALANCE-FILE.
-            DISPLAY "Transaction sent successfully!".
-        END-IF.
-    ELSE.
-        DISPLAY "Invalid amount entered. Must be a number.".
+            SUBTRACT AMOUNT FROM BALANCE-RECORD
+            DISPLAY "Processing transaction..."
+            DISPLAY "From: " SENDER
+            DISPLAY "To: " RECEIVER
+            DISPLAY "Amount: $" AMOUNT
+            DISPLAY "New Balance: $" BALANCE-RECORD
+            OPEN OUTPUT BALANCE-FILE
+            WRITE BALANCE-RECORD
+            CLOSE BALANCE-FILE
+            DISPLAY "Transaction sent successfully!"
+        END-IF
+    ELSE
+        DISPLAY "Invalid amount entered. Must be a number."
     END-IF.
 
     STOP RUN.
