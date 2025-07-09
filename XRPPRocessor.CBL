@@ -12,14 +12,14 @@ WORKING-STORAGE SECTION.
 
 PROCEDURE DIVISION.
     DISPLAY "Enter sender name: ".
-ACCEPT SENDER.
+    ACCEPT SENDER.
     DISPLAY "Enter receiver name: ".    
-ACCEPT RECEIVER.
+    ACCEPT RECEIVER.
     DISPLAY "Enter amount to send: ".    
-ACCEPT AMOUNT.
+    ACCEPT AMOUNT.
 
     IF AMOUNT > BALANCE
-        DISPLAY "Error: Insufficient funds. Transaction cancelled.".
+        DISPLAY "Error: Insufficient funds. Transaction cancelled."
     ELSE
         DISPLAY "Processing transaction...".
         DISPLAY "From: " SENDER.
