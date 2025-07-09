@@ -42,7 +42,7 @@ MAIN-PROCESS.
     IF AMOUNT IS NUMERIC THEN
         IF AMOUNT > BALANCE-RECORD THEN
             DISPLAY "Insufficient funds. Transaction cancelled.".
-        ELSE
+        ELSE.
             SUBTRACT AMOUNT FROM BALANCE-RECORD.
             DISPLAY "Processing transaction...".
             DISPLAY "From: " SENDER.
@@ -54,7 +54,7 @@ MAIN-PROCESS.
             CLOSE BALANCE-FILE.
             DISPLAY "Transaction sent successfully!".
         END-IF.
-    ELSE
+    ELSE.
         DISPLAY "Invalid amount entered. Must be a number.".
     END-IF.
 
