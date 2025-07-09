@@ -19,7 +19,7 @@ ACCEPT RECEIVER.
 ACCEPT AMOUNT.
 
     IF AMOUNT > BALANCE
-        DISPLAY "Error: Insufficient funds. Transaction cancelled."
+        DISPLAY "Error: Insufficient funds. Transaction cancelled.".
     ELSE
         DISPLAY "Processing transaction...".
         DISPLAY "From: " SENDER.
