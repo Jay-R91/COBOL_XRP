@@ -23,15 +23,15 @@ PROCEDURE DIVISION.
 MAIN-PROCESS.
 
     OPEN INPUT BALANCE-FILE.
-    READ BALANCE-FILE AT END
-        MOVE 10000.00 TO BALANCE-RECORD
-        CLOSE BALANCE-FILE
-        OPEN OUTPUT BALANCE-FILE
-        WRITE BALANCE-RECORD
-        CLOSE BALANCE-FILE.
-    NOT AT END
-        CLOSE BALANCE-FILE
-    END READ.
+    READ BALANCE-FILE 
+        AT END 
+            MOVE 10000.00 TO BALANCE-RECORD
+            CLOSE BALANCE-FILE
+            OPEN OUTPUT BALANCE-FILE
+            WRITE BALANCE-RECORD
+            CLOSE BALANCE-FILE
+    END-READ.
+    CLOSE BALANCE-FILE.
 
     DISPLAY "Current Balance: $" BALANCE-RECORD.
     DISPLAY "Enter sender name: ".
@@ -41,10 +41,10 @@ MAIN-PROCESS.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT IS NUMERIC 
+    IF AMOUNT IS NUMERIC THEN
         IF AMOUNT > BALANCE-RECORD THEN
             DISPLAY "Insufficient funds. Transaction cancelled."
-        ELSE.
+        ELSE
             SUBTRACT AMOUNT FROM BALANCE-RECORD
             DISPLAY "Processing transaction..."
             DISPLAY "From: " SENDER
