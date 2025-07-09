@@ -30,35 +30,32 @@ MAIN-PROCEDURE SECTION.
     STOP RUN.
 
 INITIALIZE-BALANCE SECTION.
-    OPEN INPUT BALANCE-FILE
+    OPEN OUTPUT BALANCE-FILE
     IF FILE-STATUS = "00"
-        READ BALANCE-FILE
-            AT END
-                MOVE 10000.00 TO BALANCE-AMOUNT
-                CLOSE BALANCE-FILE
-                OPEN OUTPUT BALANCE-FILE
-                WRITE BALANCE-RECORD
-                CLOSE BALANCE-FILE
-            NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
-                CLOSE BALANCE-FILE
-        END-READ
-    ELSE
         MOVE 10000.00 TO BALANCE-AMOUNT
-        OPEN OUTPUT BALANCE-FILE
         WRITE BALANCE-RECORD
+        DISPLAY "Init File status: " FILE-STATUS
         CLOSE BALANCE-FILE
+    ELSE
+        DISPLAY "Failed to open balance.dat for init. Status: " FILE-STATUS
     END-IF.
 
 GET-INPUT SECTION.
     OPEN INPUT BALANCE-FILE
-    READ BALANCE-FILE
-        AT END
-            MOVE 0.00 TO WS-BALANCE
-        NOT AT END
-            MOVE BALANCE-AMOUNT TO WS-BALANCE
-    END-READ
-    CLOSE BALANCE-FILE
+    IF FILE-STATUS = "00"
+        READ BALANCE-FILE
+            AT END
+                DISPLAY "File empty, using default balance."
+                MOVE 10000.00 TO WS-BALANCE
+            NOT AT END
+                MOVE BALANCE-AMOUNT TO WS-BALANCE
+                DISPLAY "Read balance: $" WS-BALANCE
+        END-READ
+        CLOSE BALANCE-FILE
+    ELSE
+        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
+        MOVE 10000.00 TO WS-BALANCE
+    END-IF
     DISPLAY "Current Balance: $" WS-BALANCE
     DISPLAY "Enter sender name: "
     ACCEPT SENDER
@@ -80,8 +77,13 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "New Balance: $" WS-BALANCE
             MOVE WS-BALANCE TO BALANCE-AMOUNT
             OPEN OUTPUT BALANCE-FILE
-            WRITE BALANCE-RECORD
-            CLOSE BALANCE-FILE
+            IF FILE-STATUS = "00"
+                WRITE BALANCE-RECORD
+                DISPLAY "Write File status: " FILE-STATUS
+                CLOSE BALANCE-FILE
+            ELSE
+                DISPLAY "Failed to write balance.dat. Status: " FILE-STATUS
+            END-IF
             DISPLAY "Transaction sent successfully!"
         END-IF
     ELSE
