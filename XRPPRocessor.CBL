@@ -5,61 +5,87 @@ ENVIRONMENT DIVISION.
 INPUT-OUTPUT SECTION.
 FILE-CONTROL.
     SELECT BALANCE-FILE ASSIGN TO "balance.dat"
-        ORGANIZATION IS LINE SEQUENTIAL.
+        ORGANIZATION IS LINE SEQUENTIAL
+        ACCESS MODE IS SEQUENTIAL
+        FILE STATUS IS FILE-STATUS.
 
 DATA DIVISION.
-
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD       PIC 9(5)V99.
+01 BALANCE-RECORD.
+    05 BALANCE-AMOUNT   PIC 9(5)V99.
 
 WORKING-STORAGE SECTION.
+01 FILE-STATUS          PIC X(2).
 01 AMOUNT               PIC 9(5)V99.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
+01 WS-BALANCE           PIC 9(5)V99.
 
 PROCEDURE DIVISION.
-
-    PERFORM INIT-BALANCE.
-    PERFORM GET-INPUT.
-    PERFORM PROCESS-TRANSACTION.
+MAIN-PROCEDURE SECTION.
+    PERFORM INITIALIZE-BALANCE
+    PERFORM GET-INPUT
+    PERFORM PROCESS-TRANSACTION
     STOP RUN.
 
-INIT-BALANCE.
-    OPEN INPUT BALANCE-FILE.
-    READ BALANCE-FILE AT END
-        MOVE 10000.00 TO BALANCE-RECORD
-        CLOSE BALANCE-FILE
+INITIALIZE-BALANCE SECTION.
+    OPEN INPUT BALANCE-FILE
+    IF FILE-STATUS = "00"
+        READ BALANCE-FILE
+            AT END
+                MOVE 10000.00 TO BALANCE-AMOUNT
+                CLOSE BALANCE-FILE
+                OPEN OUTPUT BALANCE-FILE
+                WRITE BALANCE-RECORD
+                CLOSE BALANCE-FILE
+            NOT AT END
+                MOVE BALANCE-AMOUNT TO WS-BALANCE
+                CLOSE BALANCE-FILE
+        END-READ
+    ELSE
+        MOVE 10000.00 TO BALANCE-AMOUNT
         OPEN OUTPUT BALANCE-FILE
         WRITE BALANCE-RECORD
-        CLOSE BALANCE-FILE.
-    CLOSE BALANCE-FILE.
+        CLOSE BALANCE-FILE
+    END-IF.
 
-GET-INPUT.
-    DISPLAY "Current Balance: $" BALANCE-RECORD.
-    DISPLAY "Enter sender name: ".
-    ACCEPT SENDER.
-    DISPLAY "Enter receiver name: ".
-    ACCEPT RECEIVER.
-    DISPLAY "Enter amount to send: ".
+GET-INPUT SECTION.
+    OPEN INPUT BALANCE-FILE
+    READ BALANCE-FILE
+        AT END
+            MOVE 0.00 TO WS-BALANCE
+        NOT AT END
+            MOVE BALANCE-AMOUNT TO WS-BALANCE
+    END-READ
+    CLOSE BALANCE-FILE
+    DISPLAY "Current Balance: $" WS-BALANCE
+    DISPLAY "Enter sender name: "
+    ACCEPT SENDER
+    DISPLAY "Enter receiver name: "
+    ACCEPT RECEIVER
+    DISPLAY "Enter amount to send: "
     ACCEPT AMOUNT.
 
-PROCESS-TRANSACTION.
-    IF AMOUNT IS NUMERIC THEN
-        IF AMOUNT > BALANCE-RECORD THEN
-            DISPLAY "Insufficient funds. Transaction cancelled.".
+PROCESS-TRANSACTION SECTION.
+    IF AMOUNT IS NUMERIC
+        IF AMOUNT > WS-BALANCE
+            DISPLAY "Insufficient funds. Transaction cancelled."
         ELSE
-            SUBTRACT AMOUNT FROM BALANCE-RECORD.
-            DISPLAY "Processing transaction...".
-            DISPLAY "From: " SENDER.
-            DISPLAY "To: " RECEIVER.
-            DISPLAY "Amount: $" AMOUNT.
-            DISPLAY "New Balance: $" BALANCE-RECORD.
-            OPEN OUTPUT BALANCE-FILE.
-            WRITE BALANCE-RECORD.
-            CLOSE BALANCE-FILE.
-            DISPLAY "Transaction sent successfully!".
-        END-IF.
+            SUBTRACT AMOUNT FROM WS-BALANCE
+            DISPLAY "Processing transaction..."
+            DISPLAY "From: " SENDER
+            DISPLAY "To: " RECEIVER
+            DISPLAY "Amount: $" AMOUNT
+            DISPLAY "New Balance: $" WS-BALANCE
+            MOVE WS-BALANCE TO BALANCE-AMOUNT
+            OPEN OUTPUT BALANCE-FILE
+            WRITE BALANCE-RECORD
+            CLOSE BALANCE-FILE
+            DISPLAY "Transaction sent successfully!"
+        END-IF
     ELSE
-        DISPLAY "Invalid amount entered. Must be a number.".
+        DISPLAY "Invalid amount entered. Must be a number."
     END-IF.
+
+END PROGRAM XRP-PROCESSOR.
