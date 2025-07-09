@@ -11,7 +11,6 @@ WORKING-STORAGE SECTION.
 01 BALANCE     PIC 9(5)V99 VALUE 10000.00.
 01 AMOUNT-DISPLAY   PIC X(30).
 
-
 PROCEDURE DIVISION.
     DISPLAY "Enter sender name: ".
     ACCEPT SENDER.
@@ -26,8 +25,12 @@ PROCEDURE DIVISION.
         DISPLAY "Processing transaction...".
         DISPLAY "From: " SENDER.
         DISPLAY "To: " RECEIVER.
-        DISPLAY "Amount: $".
+        MOVE "Amount: $" TO AMOUNT-DISPLAY.
+        STRING AMOUNT DELIMITED BY SIZE INTO AMOUNT-DISPLAY WITH POINTER 9.
+        DISPLAY AMOUNT-DISPLAY.
         DISPLAY "Transaction sent successfully!".
+        SUBTRACT AMOUNT FROM BALANCE GIVING BALANCE.
+        DISPLAY "Remaining balance: $" BALANCE.
     END-IF.
 
     STOP RUN.
