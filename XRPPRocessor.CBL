@@ -4,9 +4,24 @@ PROGRAM-ID. XRP-PROCESSOR.
 ENVIRONMENT DIVISION.
 
 DATA DIVISION.
-
+WORKING-STORAGE SECTION.
+01 SENDER      PIC X(20).
+01 RECEIVER    PIC X(20).
+01 AMOUNT      PIC 9(5)V99.
 PROCEDURE DIVISION.
- 
+DISPLAY "Enter sender name: ".
+ACCEPT SENDER.
+DISPLAY "Enter receiver name: ".
+ACCEPT RECEIVER.
+DISPLAY "Enter amount to send: ".
+ACCEPT AMOUNT.
+DISPLAY "Processing transaction...".
+DISPLAY "From: " SENDER.
+DISPLAY "To: " RECEIVER.
+DISPLAY "Amount: $" AMOUNT.
+DISPLAY "Transaction sent successfully!".
+STOP RUN.
+
 
 
 DISPLAY 'Hello, XRP!'.
