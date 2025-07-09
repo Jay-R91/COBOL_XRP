@@ -24,7 +24,8 @@ PROCEDURE DIVISION.
         DISPLAY "Processing transaction...".
         DISPLAY "From: " SENDER.
         DISPLAY "To: " RECEIVER.
-        DISPLAY "Amount: $" AMOUNT.
+        DISPLAY "Amount: $" 
+        DISPLAY AMOUNT.
         DISPLAY "Transaction sent successfully!".
     END-IF.
 
