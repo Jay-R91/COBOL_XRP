@@ -22,7 +22,7 @@ WORKING-STORAGE SECTION.
    88 NOT-END-OF-FILE   VALUE 'N'.
 
 PROCEDURE DIVISION.
-MAIN-PROCESS.
+
     OPEN INPUT BALANCE-FILE.
     READ BALANCE-FILE
         AT END
@@ -52,7 +52,7 @@ MAIN-PROCESS.
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE
 
-        DISPLAY "Transaction sent successfully!"
+        DISPLAY "Transaction sent successfully!".
     END-IF.
 
     STOP RUN.
