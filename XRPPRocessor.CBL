@@ -38,7 +38,7 @@ PROCEDURE DIVISION.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT > BALANCE-RECORD
+    IF AMOUNT > BALANCE-RECORD THEN
         DISPLAY "Insufficient funds. Transaction cancelled.".
     ELSE
         SUBTRACT AMOUNT FROM BALANCE-RECORD.
