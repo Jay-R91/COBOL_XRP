@@ -38,19 +38,21 @@ PROCEDURE DIVISION.
     DISPLAY "Enter amount to send: ".
     ACCEPT AMOUNT.
 
-    IF AMOUNT > BALANCE-RECORD THEN
-        DISPLAY "Insufficient funds. Transaction cancelled.".
-    ELSE
-        SUBTRACT AMOUNT FROM BALANCE-RECORD.
-        DISPLAY "Processing transaction...".
-        DISPLAY "From: " SENDER.
-        DISPLAY "To: " RECEIVER.
-        DISPLAY "Amount: $" AMOUNT.
-        DISPLAY "New Balance: $" BALANCE-RECORD.
-        OPEN OUTPUT BALANCE-FILE.
-        WRITE BALANCE-RECORD.
-        CLOSE BALANCE-FILE.
-        DISPLAY "Transaction sent successfully!".
+    EVALUATE TRUE
+        WHEN AMOUNT > BALANCE-RECORD
+            DISPLAY "Insufficient funds. Transaction cancelled.".
+        WHEN OTHER
+            SUBTRACT AMOUNT FROM BALANCE-RECORD.
+            DISPLAY "Processing transaction...".
+            DISPLAY "From: " SENDER.
+            DISPLAY "To: " RECEIVER.
+            DISPLAY "Amount: $" AMOUNT.
+            DISPLAY "New Balance: $" BALANCE-RECORD.
+            OPEN OUTPUT BALANCE-FILE.
+            WRITE BALANCE-RECORD.
+            CLOSE BALANCE-FILE.
+            DISPLAY "Transaction sent successfully!".
+    END-EVALUATE.
     END-IF.
 
     STOP RUN.
