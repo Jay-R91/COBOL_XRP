@@ -1,35 +1,35 @@
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. XRP-PROCESSOR.
+IDENTIFICATION DIVISION.
+PROGRAM-ID. XRP-PROCESSOR.
 
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 SENDER             PIC X(20).
-       01 RECEIVER           PIC X(20).
-       01 AMOUNT             PIC 9(5)V99.
-       01 BALANCE            PIC 9(5)V99 VALUE 10000.00.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 SENDER      PIC X(20).
+01 RECEIVER    PIC X(20).
+01 AMOUNT      PIC 9(5)V99.
+01 BALANCE     PIC 9(5)V99 VALUE 10000.00.
 
-       PROCEDURE DIVISION.
-           DISPLAY "Enter sender name: ".
-           ACCEPT SENDER.
+PROCEDURE DIVISION.
+DISPLAY "Enter sender name:"
+ACCEPT SENDER
 
-           DISPLAY "Enter receiver name: ".
-           ACCEPT RECEIVER.
+DISPLAY "Enter receiver name:"
+ACCEPT RECEIVER
 
-           DISPLAY "Enter amount to send: ".
-           ACCEPT AMOUNT.
+DISPLAY "Enter amount to send:"
+ACCEPT AMOUNT
 
-           IF AMOUNT > BALANCE
-               DISPLAY "Error: Insufficient funds. Transaction cancelled."
-           ELSE
-               DISPLAY "Transaction in progress...".
-               DISPLAY "From: " SENDER.
-               DISPLAY "To: " RECEIVER.
-               DISPLAY "Amount sent: $".
-               DISPLAY AMOUNT.
-               SUBTRACT AMOUNT FROM BALANCE GIVING BALANCE.
-               DISPLAY "Transaction sent successfully!".
-               DISPLAY "Remaining balance: $".
-               DISPLAY BALANCE.
-           END-IF.
+IF AMOUNT > BALANCE
+    DISPLAY "Error: Insufficient funds. Transaction cancelled."
+ELSE
+    DISPLAY "Sending funds..."
+    DISPLAY "From:" SENDER
+    DISPLAY "To:" RECEIVER
+    DISPLAY "Amount sent:"
+    DISPLAY AMOUNT
+    SUBTRACT AMOUNT FROM BALANCE GIVING BALANCE
+    DISPLAY "Transaction sent successfully!"
+    DISPLAY "Remaining balance:"
+    DISPLAY BALANCE
+END-IF
 
-           STOP RUN.
+STOP RUN.
