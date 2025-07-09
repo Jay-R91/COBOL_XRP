@@ -32,7 +32,9 @@ PROCEDURE DIVISION.
         DISPLAY "Transaction sent successfully!".
         SUBTRACT AMOUNT FROM BALANCE GIVING BALANCE.
         DISPLAY "Remaining balance: $".
-        DISPLAY BALANCE.
+        DISPLAY BALANCE
+        .
+
     END-IF.
 
     STOP RUN.
