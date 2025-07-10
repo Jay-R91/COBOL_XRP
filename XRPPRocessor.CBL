@@ -21,7 +21,7 @@ WORKING-STORAGE SECTION.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 WS-BALANCE           PIC 9(5)V99.
-01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.
+01 WS-DISPLAY-BALANCE   PIC ---,---,--9.99.  *> Adjusted for cleaner display
 01 WS-RAW-BALANCE       PIC X(10).
 01 WS-TEMP-BALANCE      PIC 9(7)V99.
 
