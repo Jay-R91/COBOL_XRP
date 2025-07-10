@@ -12,18 +12,18 @@ FILE-CONTROL.
 DATA DIVISION.
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD.
-    05 BALANCE-AMOUNT   PIC 9(7).  *> Store balance as integer (e.g., 0854800)
+01 BALANCE-RECORD PIC X(7).
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
 01 AMOUNT               PIC 9(5)V99.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
-01 WS-BALANCE           PIC 9(5)V99.  *> Balance with decimals for calculations
-01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.  *> Formatted display
-01 WS-RAW-BALANCE       PIC X(10).  *> Raw file input
-01 WS-BALANCE-INT       PIC 9(7).  *> Integer balance for file I/O
+01 WS-BALANCE           PIC 9(5)V99.
+01 WS-DISPLAY-BALANCE   PIC $ZZ,ZZ9.99.  *> Improved display format
+01 WS-RAW-BALANCE       PIC X(7).
+01 WS-BALANCE-INT       PIC 9(7).
+01 WS-BALANCE-EDIT      PIC 0000000.     *> Ensures 7 digits with leading zeros
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -33,47 +33,29 @@ MAIN-PROCEDURE SECTION.
     STOP RUN.
 
 INITIALIZE-BALANCE SECTION.
-    OPEN I-O BALANCE-FILE.
-    IF FILE-STATUS = "00" OR FILE-STATUS = "35"  *> 35 = file not found
-        MOVE 1000000 TO BALANCE-AMOUNT  *> Default $10,000.00 as 1000000
+    OPEN INPUT BALANCE-FILE
+    IF FILE-STATUS = "35"  *> File not found
+        CLOSE BALANCE-FILE
+        OPEN OUTPUT BALANCE-FILE
+        MOVE 1000000 TO WS-BALANCE-INT  *> Default $10,000.00 as 1000000 cents
+        MOVE WS-BALANCE-INT TO WS-BALANCE-EDIT
+        MOVE WS-BALANCE-EDIT TO BALANCE-RECORD
         WRITE BALANCE-RECORD
-        DISPLAY "Init File status: " FILE-STATUS
         CLOSE BALANCE-FILE
     ELSE
-        DISPLAY "Failed to initialize balance.dat. Status: " FILE-STATUS
-        CLOSE BALANCE-FILE
-    END-IF.
-    OPEN INPUT BALANCE-FILE.
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE INTO WS-RAW-BALANCE
-            AT END
-                DISPLAY "Init read failed, forcing default."
-                MOVE 1000000 TO BALANCE-AMOUNT
-                CLOSE BALANCE-FILE
-                OPEN OUTPUT BALANCE-FILE
-                WRITE BALANCE-RECORD
-                CLOSE BALANCE-FILE
-            NOT AT END
-                PERFORM CONVERT-RAW-BALANCE
-                MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
-            END-READ
         CLOSE BALANCE-FILE
     END-IF.
 
 GET-INPUT SECTION.
-    OPEN INPUT BALANCE-FILE.
+    OPEN INPUT BALANCE-FILE
     IF FILE-STATUS = "00"
         READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 DISPLAY "File empty, using default balance."
-                MOVE 1000000 TO BALANCE-AMOUNT
-                CLOSE BALANCE-FILE
-                OPEN OUTPUT BALANCE-FILE
-                WRITE BALANCE-RECORD
-                CLOSE BALANCE-FILE
+                MOVE 10000.00 TO WS-BALANCE
             NOT AT END
-                PERFORM CONVERT-RAW-BALANCE
+                MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-INT
+                COMPUTE WS-BALANCE = WS-BALANCE-INT / 100
                 MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             END-READ
@@ -81,11 +63,9 @@ GET-INPUT SECTION.
     ELSE
         DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
         MOVE 10000.00 TO WS-BALANCE
-        MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-        DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
     END-IF.
     DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
-    displaying "Enter sender name: "
+    DISPLAY "Enter sender name: "
     ACCEPT SENDER
     DISPLAY "Enter receiver name: "
     ACCEPT RECEIVER
@@ -100,33 +80,23 @@ PROCESS-TRANSACTION SECTION.
             COMPUTE WS-BALANCE = WS-BALANCE - AMOUNT
             MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
             DISPLAY "Processing transaction..."
-            DISPLAY "From: " SENDER
-            DISPLAY "To: " RECEIVER
+            DISPLAY "  From: " SENDER
+            DISPLAY "  To: " RECEIVER
             MOVE AMOUNT TO WS-DISPLAY-BALANCE
-            DISPLAY "Amount: " WS-DISPLAY-BALANCE
+            DISPLAY "  Amount: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            COMPUTE WS-BALANCE-INT = WS-BALANCE * 100  *> Convert to integer
-            MOVE WS-BALANCE-INT TO BALANCE-AMOUNT
-            OPEN I-O BALANCE-FILE
-            IF FILE-STATUS = "00"
-                REWRITE BALANCE-RECORD
-                DISPLAY "Rewrite File status: " FILE-STATUS
-                CLOSE BALANCE-FILE
-            ELSE
-                DISPLAY "Failed to rewrite balance.dat. Status: " FILE-STATUS
-            END-IF
+            DISPLAY "  New Balance: " WS-DISPLAY-BALANCE
+            COMPUTE WS-BALANCE-INT = WS-BALANCE * 100
+            MOVE WS-BALANCE-INT TO WS-BALANCE-EDIT
+            MOVE WS-BALANCE-EDIT TO BALANCE-RECORD
+            CLOSE BALANCE-FILE
+            OPEN OUTPUT BALANCE-FILE
+            WRITE BALANCE-RECORD
+            CLOSE BALANCE-FILE
             DISPLAY "Transaction sent successfully!"
         END-IF
     ELSE
         DISPLAY "Invalid amount entered. Must be a number."
-    END-IF.
-
-CONVERT-RAW-BALANCE SECTION.
-    MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-INT
-    COMPUTE WS-BALANCE = WS-BALANCE-INT / 100  *> Convert to decimal
-    IF WS-BALANCE > 99999.99
-        MOVE 99999.99 TO WS-BALANCE
     END-IF.
 
 END PROGRAM XRP-PROCESSOR.
