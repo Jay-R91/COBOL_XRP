@@ -7,7 +7,7 @@ FILE-CONTROL.
     SELECT BALANCE-FILE ASSIGN TO "balance.dat"
         ORGANIZATION IS LINE SEQUENTIAL
         ACCESS MODE IS SEQUENTIAL
-        FILE STATUS IS FILE-STATUS.
+        FILE STATUS IS FILE-STATUS
 
 DATA DIVISION.
 FILE SECTION.
@@ -17,98 +17,75 @@ FD BALANCE-FILE.
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
-01 AMOUNT               PIC 9(5)V99.
-01 SENDER               PIC X(20).
-01 RECEIVER             PIC X(20).
 01 WS-BALANCE           PIC 9(5)V99.
-01 WS-OUTPUT-RECORD     PIC Z(5)9.99.  *> Formatted for display with decimal
+01 WS-AMOUNT            PIC 9(5)V99.
+01 WS-SENDER            PIC X(20).
+01 WS-RECEIVER          PIC X(20).
+01 WS-OUTPUT-RECORD     PIC Z(5)9.99.
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
     PERFORM INITIALIZE-BALANCE
-    PERFORM GET-INPUT
+    PERFORM GET-USER-INPUT
     PERFORM PROCESS-TRANSACTION
     STOP RUN.
 
 INITIALIZE-BALANCE SECTION.
-    OPEN OUTPUT BALANCE-FILE
-    IF FILE-STATUS = "00" OR FILE-STATUS = "35"  *> 35 = file not found
-        MOVE 10000.00 TO BALANCE-AMOUNT
+    OPEN INPUT BALANCE-FILE
+    IF FILE-STATUS = "35" OR FILE-STATUS = "05"
+        CLOSE BALANCE-FILE
+        MOVE 10000.00 TO WS-BALANCE
+        OPEN OUTPUT BALANCE-FILE
+        MOVE WS-BALANCE TO BALANCE-AMOUNT
         MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
         WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
-        DISPLAY "Init File status: " FILE-STATUS
         CLOSE BALANCE-FILE
-        OPEN INPUT BALANCE-FILE  *> Reopen for reading
+    ELSE
         IF FILE-STATUS = "00"
             READ BALANCE-FILE
                 AT END
-                    DISPLAY "Init read failed, forcing default."
-                    MOVE 10000.00 TO BALANCE-AMOUNT
-                    MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
+                    MOVE 10000.00 TO WS-BALANCE
                     CLOSE BALANCE-FILE
                     OPEN OUTPUT BALANCE-FILE
+                    MOVE WS-BALANCE TO BALANCE-AMOUNT
+                    MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
                     WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
                     CLOSE BALANCE-FILE
                 NOT AT END
                     MOVE BALANCE-AMOUNT TO WS-BALANCE
             END-READ
             CLOSE BALANCE-FILE
+        ELSE
+            DISPLAY "Error opening balance.dat: " FILE-STATUS
+            STOP RUN
         END-IF
-    ELSE
-        DISPLAY "Failed to initialize balance.dat. Status: " FILE-STATUS
     END-IF.
 
-GET-INPUT SECTION.
-    OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE
-            AT END
-                DISPLAY "File empty, using default balance."
-                MOVE 10000.00 TO WS-BALANCE
-                MOVE WS-BALANCE TO BALANCE-AMOUNT
-                MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
-                CLOSE BALANCE-FILE
-                OPEN OUTPUT BALANCE-FILE
-                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
-                CLOSE BALANCE-FILE
-            NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
-                DISPLAY "Read balance: $" WS-BALANCE
-        END-READ
-        CLOSE BALANCE-FILE
-    ELSE
-        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
-        MOVE 10000.00 TO WS-BALANCE
-    END-IF
+GET-USER-INPUT SECTION.
     DISPLAY "Current Balance: $" WS-BALANCE
     DISPLAY "Enter sender name: "
-    ACCEPT SENDER
+    ACCEPT WS-SENDER
     DISPLAY "Enter receiver name: "
-    ACCEPT RECEIVER
+    ACCEPT WS-RECEIVER
     DISPLAY "Enter amount to send: "
-    ACCEPT AMOUNT.
+    ACCEPT WS-AMOUNT.
 
 PROCESS-TRANSACTION SECTION.
-    IF AMOUNT IS NUMERIC
-        IF AMOUNT > WS-BALANCE
+    IF WS-AMOUNT IS NUMERIC
+        IF WS-AMOUNT > WS-BALANCE
             DISPLAY "Insufficient funds. Transaction cancelled."
         ELSE
-            SUBTRACT AMOUNT FROM WS-BALANCE
-            DISPLAY "Processing transaction..."
-            DISPLAY "From: " SENDER
-            DISPLAY "To: " RECEIVER
-            DISPLAY "Amount: $" AMOUNT
-            DISPLAY "New Balance: $" WS-BALANCE
+            SUBTRACT WS-AMOUNT FROM WS-BALANCE
+            OPEN OUTPUT BALANCE-FILE
             MOVE WS-BALANCE TO BALANCE-AMOUNT
             MOVE BALANCE-AMOUNT TO WS-OUTPUT-RECORD
-            OPEN OUTPUT BALANCE-FILE
-            IF FILE-STATUS = "00"
-                WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
-                DISPLAY "Write File status: " FILE-STATUS
-                CLOSE BALANCE-FILE
-            ELSE
-                DISPLAY "Failed to write balance.dat. Status: " FILE-STATUS
-            END-IF
+            WRITE BALANCE-RECORD FROM WS-OUTPUT-RECORD
+            CLOSE BALANCE-FILE
+            DISPLAY "Processing transaction..."
+            DISPLAY "From: " WS-SENDER
+            DISPLAY "To: " WS-RECEIVER
+            DISPLAY "Amount: $" WS-AMOUNT
+            DISPLAY "New Balance: $" WS-BALANCE
             DISPLAY "Transaction sent successfully!"
         END-IF
     ELSE
