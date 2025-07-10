@@ -12,18 +12,18 @@ FILE-CONTROL.
 DATA DIVISION.
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD PIC X(7).
+01 BALANCE-RECORD PIC X(7).  *> Store balance as a 7-character string
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
-01 AMOUNT               PIC 9(5)V99.
-01 SENDER               PIC X(20).
-01 RECEIVER             PIC X(20).
-01 WS-BALANCE           PIC 9(5)V99.
-01 WS-DISPLAY-BALANCE   PIC $ZZ,ZZ9.99.  *> Improved display format
-01 WS-RAW-BALANCE       PIC X(7).
-01 WS-BALANCE-INT       PIC 9(7).
-01 WS-BALANCE-EDIT      PIC 0000000.     *> Ensures 7 digits with leading zeros
+01 WS-BALANCE           PIC 9(5)V99.  *> Balance with 2 decimal places
+01 WS-BALANCE-INT       PIC 9(7).     *> Integer balance in cents
+01 WS-BALANCE-EDIT      PIC 0000000.  *> 7-digit string with leading zeros
+01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.  *> For display purposes
+01 WS-RAW-BALANCE       PIC X(7).     *> Raw file input
+01 SENDER               PIC X(20).    *> Sender name
+01 RECEIVER             PIC X(20).    *> Receiver name
+01 AMOUNT               PIC 9(5)V99.  *> Transaction amount
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -52,7 +52,7 @@ GET-INPUT SECTION.
         READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 DISPLAY "File empty, using default balance."
-                MOVE 10000.00 TO WS-BALANCE
+                MOVE 1000000 TO WS-BALANCE-INT
             NOT AT END
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-INT
                 COMPUTE WS-BALANCE = WS-BALANCE-INT / 100
@@ -80,17 +80,17 @@ PROCESS-TRANSACTION SECTION.
             COMPUTE WS-BALANCE = WS-BALANCE - AMOUNT
             MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
             DISPLAY "Processing transaction..."
-            DISPLAY "  From: " SENDER
-            DISPLAY "  To: " RECEIVER
+            DISPLAY "From: " SENDER
+            DISPLAY "To: " RECEIVER
             MOVE AMOUNT TO WS-DISPLAY-BALANCE
-            DISPLAY "  Amount: " WS-DISPLAY-BALANCE
+            DISPLAY "Amount: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-            DISPLAY "  New Balance: " WS-DISPLAY-BALANCE
-            COMPUTE WS-BALANCE-INT = WS-BALANCE * 100
-            MOVE WS-BALANCE-INT TO WS-BALANCE-EDIT
-            MOVE WS-BALANCE-EDIT TO BALANCE-RECORD
+            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
+            COMPUTE WS-BALANCE-INT = WS-BALANCE * 100  *> Convert to cents
+            MOVE WS-BALANCE-INT TO WS-BALANCE-EDIT     *> Format as 7-digit string
+            MOVE WS-BALANCE-EDIT TO BALANCE-RECORD      *> Prepare record
             CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE
+            OPEN OUTPUT BALANCE-FILE                    *> Overwrite file
             WRITE BALANCE-RECORD
             CLOSE BALANCE-FILE
             DISPLAY "Transaction sent successfully!"
