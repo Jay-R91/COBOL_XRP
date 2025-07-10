@@ -12,56 +12,55 @@ FILE-CONTROL.
 DATA DIVISION.
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD PIC X(7).
+01 BALANCE-RECORD PIC X(7).  *> 7-character string for balance (e.g., "0085480")
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
-01 WS-BALANCE           PIC 9(5)V99.  *> Balance with decimals, e.g., 8548.00
-01 WS-BALANCE-INT       PIC 9(7).    *> Integer balance in cents, e.g., 854800
-01 WS-BALANCE-STR       PIC X(7).    *> Formatted string for file, e.g., "0854800"
-01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.  *> For display, e.g., "$8,548.00"
+01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 85480)
+01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 854.80)
+01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Display format (e.g., "$854.80")
+01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
+01 WS-BALANCE-STR       PIC 9(7).    *> 7-digit string for file output
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
-01 AMOUNT               PIC 9(5)V99.
+01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 500.00)
+01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 50000)
 
 PROCEDURE DIVISION.
-MAIN-PROCEDURE SECTION.
-    PERFORM INITIALIZE-BALANCE
-    PERFORM GET-INPUT
+MAIN-PROCEDURE.
+    PERFORM READ-BALANCE
+    PERFORM DISPLAY-AND-GET-INPUT
     PERFORM PROCESS-TRANSACTION
     STOP RUN.
 
-INITIALIZE-BALANCE SECTION.
+READ-BALANCE.
     OPEN INPUT BALANCE-FILE
     IF FILE-STATUS = "35"  *> File not found
-        CLOSE BALANCE-FILE
-        OPEN OUTPUT BALANCE-FILE
-        MOVE 1000000 TO WS-BALANCE-INT  *> Default: 1000000 cents = $10,000.00
-        PERFORM FORMAT-BALANCE
-        WRITE BALANCE-RECORD FROM WS-BALANCE-STR
-        CLOSE BALANCE-FILE
+        MOVE 1000000 TO WS-BALANCE-CENTS  *> Default $10,000.00
+        PERFORM WRITE-BALANCE
     ELSE
-       statementsCLOSE BALANCE-FILE
-    END-IF.
-
-GET-INPUT SECTION.
-    OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE INTO WS-BALANCE-STR
+        READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 DISPLAY "File empty, using default balance."
-                MOVE 1000000 TO WS-BALANCE-INT
+                MOVE 1000000 TO WS-BALANCE-CENTS
             NOT AT END
-                MOVE FUNCTION NUMVAL(WS-BALANCE-STR) TO WS-BALANCE-INT
-                COMPUTE WS-BALANCE = WS-BALANCE-INT / 100
-                MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
+                PERFORM CONVERT-BALANCE
             END-READ
         CLOSE BALANCE-FILE
-    ELSE
-        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
-        MOVE 10000.00 TO WS-BALANCE
     END-IF.
+
+CONVERT-BALANCE.
+    *> Replace spaces with zeros and handle decimal
+    INSPECT WS-RAW-BALANCE REPLACING ALL ' ' BY '0'
+    MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
+    *> If no decimal intended, assume cents and adjust (e.g., 8548 -> 854800)
+    IF WS-BALANCE-CENTS < 10000  *> Likely misread as dollars without cents
+        MULTIPLY WS-BALANCE-CENTS BY 100 GIVING WS-BALANCE-CENTS
+    END-IF.
+
+DISPLAY-AND-GET-INPUT.
+    COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+    MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
     DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
     DISPLAY "Enter sender name: "
     ACCEPT SENDER
@@ -70,35 +69,33 @@ GET-INPUT SECTION.
     DISPLAY "Enter amount to send: "
     ACCEPT AMOUNT.
 
-PROCESS-TRANSACTION SECTION.
+PROCESS-TRANSACTION.
     IF AMOUNT IS NUMERIC
-        IF AMOUNT > WS-BALANCE
+        COMPUTE WS-AMOUNT-CENTS = AMOUNT * 100
+        IF WS-AMOUNT-CENTS > WS-BALANCE-CENTS
             DISPLAY "Insufficient funds. Transaction cancelled."
         ELSE
-            COMPUTE WS-BALANCE = WS-BALANCE - AMOUNT
-            MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
+            SUBTRACT WS-AMOUNT-CENTS FROM WS-BALANCE-CENTS
+            COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+            MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
             DISPLAY "Processing transaction..."
             DISPLAY "From: " SENDER
             DISPLAY "To: " RECEIVER
             MOVE AMOUNT TO WS-DISPLAY-BALANCE
             DISPLAY "Amount: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
+            MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
             DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            COMPUTE WS-BALANCE-  *> Convert to cents
-            COMPUTE WS-BALANCE-INT = WS-BALANCE * 100
-            PERFORM FORMAT-BALANCE
-            CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE
-            WRITE BALANCE-RECORD FROM WS-BALANCE-STR
-            CLOSE BALANCE-FILE
+            PERFORM WRITE-BALANCE
             DISPLAY "Transaction sent successfully!"
         END-IF
     ELSE
         DISPLAY "Invalid amount entered. Must be a number."
     END-IF.
 
-FORMAT-BALANCE SECTION.
-    MOVE WS-BALANCE-INT TO WS-BALANCE-STR
-    INSPECT WS-BALANCE-STR REPLACING ALL ' ' BY '0'.
+WRITE-BALANCE.
+    MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
+    OPEN OUTPUT BALANCE-FILE
+    WRITE BALANCE-RECORD FROM WS-BALANCE-STR
+    CLOSE BALANCE-FILE.
 
 END PROGRAM XRP-PROCESSOR.
