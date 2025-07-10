@@ -21,6 +21,7 @@ WORKING-STORAGE SECTION.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 WS-BALANCE           PIC 9(5)V99.
+01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.  *> Added for proper display formatting
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -64,14 +65,16 @@ GET-INPUT SECTION.
                 MOVE 10000.00 TO WS-BALANCE
             NOT AT END
                 MOVE BALANCE-AMOUNT TO WS-BALANCE
-                DISPLAY "Read balance: $" WS-BALANCE
+                MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
+                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             END-READ
         CLOSE BALANCE-FILE
     ELSE
         DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
         MOVE 10000.00 TO WS-BALANCE
     END-IF
-    DISPLAY "Current Balance: $" WS-BALANCE
+    MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
+    DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
     DISPLAY "Enter sender name: "
     ACCEPT SENDER
     DISPLAY "Enter receiver name: "
@@ -88,8 +91,10 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "Processing transaction..."
             DISPLAY "From: " SENDER
             DISPLAY "To: " RECEIVER
-            DISPLAY "Amount: $" AMOUNT
-            DISPLAY "New Balance: $" WS-BALANCE
+            MOVE AMOUNT TO WS-DISPLAY-BALANCE  *> Reuse display field for amount
+            DISPLAY "Amount: " WS-DISPLAY-BALANCE
+            MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
+            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE TO BALANCE-AMOUNT
             OPEN I-O BALANCE-FILE
             IF FILE-STATUS = "00"
