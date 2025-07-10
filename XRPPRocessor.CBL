@@ -21,7 +21,8 @@ WORKING-STORAGE SECTION.
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 WS-BALANCE           PIC 9(5)V99.
-01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.  *> Ensures proper currency formatting
+01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.
+01 WS-RAW-BALANCE       PIC X(10).  *> Temporary storage for raw file data
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -43,7 +44,7 @@ INITIALIZE-BALANCE SECTION.
     END-IF
     OPEN INPUT BALANCE-FILE
     IF FILE-STATUS = "00"
-        READ BALANCE-FILE
+        READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 DISPLAY "Init read failed, forcing default."
                 MOVE 10000.00 TO BALANCE-AMOUNT
@@ -52,7 +53,7 @@ INITIALIZE-BALANCE SECTION.
                 WRITE BALANCE-RECORD
                 CLOSE BALANCE-FILE
             NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
+                PERFORM CONVERT-RAW-BALANCE
                 MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             END-READ
@@ -62,14 +63,14 @@ INITIALIZE-BALANCE SECTION.
 GET-INPUT SECTION.
     OPEN INPUT BALANCE-FILE
     IF FILE-STATUS = "00"
-        READ BALANCE-FILE
+        READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 DISPLAY "File empty, using default balance."
                 MOVE 10000.00 TO WS-BALANCE
                 MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
+                PERFORM CONVERT-RAW-BALANCE
                 MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             END-READ
@@ -117,123 +118,11 @@ PROCESS-TRANSACTION SECTION.
         DISPLAY "Invalid amount entered. Must be a number."
     END-IF.
 
-END PROGRAM XRP-PROCESSOR.IDENTIFICATION DIVISION.
-PROGRAM-ID. XRP-PROCESSOR.
-
-ENVIRONMENT DIVISION.
-INPUT-OUTPUT SECTION.
-FILE-CONTROL.
-    SELECT BALANCE-FILE ASSIGN TO "balance.dat"
-        ORGANIZATION IS LINE SEQUENTIAL
-        ACCESS MODE IS SEQUENTIAL
-        FILE STATUS IS FILE-STATUS.
-
-DATA DIVISION.
-FILE SECTION.
-FD BALANCE-FILE.
-01 BALANCE-RECORD.
-    05 BALANCE-AMOUNT   PIC 9(5)V99.
-
-WORKING-STORAGE SECTION.
-01 FILE-STATUS          PIC X(2).
-01 AMOUNT               PIC 9(5)V99.
-01 SENDER               PIC X(20).
-01 RECEIVER             PIC X(20).
-01 WS-BALANCE           PIC 9(5)V99.
-01 WS-DISPLAY-BALANCE   PIC $Z,ZZZ,ZZ9.99.  *> Ensures proper currency formatting
-
-PROCEDURE DIVISION.
-MAIN-PROCEDURE SECTION.
-    PERFORM INITIALIZE-BALANCE
-    PERFORM GET-INPUT
-    PERFORM PROCESS-TRANSACTION
-    STOP RUN.
-
-INITIALIZE-BALANCE SECTION.
-    OPEN I-O BALANCE-FILE
-    IF FILE-STATUS = "00" OR FILE-STATUS = "35"  *> 35 = file not found
-        MOVE 10000.00 TO BALANCE-AMOUNT
-        WRITE BALANCE-RECORD
-        DISPLAY "Init File status: " FILE-STATUS
-        CLOSE BALANCE-FILE
-    ELSE
-        DISPLAY "Failed to initialize balance.dat. Status: " FILE-STATUS
-        CLOSE BALANCE-FILE
-    END-IF
-    OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE
-            AT END
-                DISPLAY "Init read failed, forcing default."
-                MOVE 10000.00 TO BALANCE-AMOUNT
-                CLOSE BALANCE-FILE
-                OPEN OUTPUT BALANCE-FILE
-                WRITE BALANCE-RECORD
-                CLOSE BALANCE-FILE
-            NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
-                MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
-            END-READ
-        CLOSE BALANCE-FILE
+CONVERT-RAW-BALANCE SECTION.
+    UNSTRING WS-RAW-BALANCE DELIMITED BY "." INTO WS-BALANCE
+    IF WS-RAW-BALANCE = SPACES
+        MOVE 0.00 TO WS-BALANCE
     END-IF.
-
-GET-INPUT SECTION.
-    OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE
-            AT END
-                DISPLAY "File empty, using default balance."
-                MOVE 10000.00 TO WS-BALANCE
-                MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
-            NOT AT END
-                MOVE BALANCE-AMOUNT TO WS-BALANCE
-                MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
-            END-READ
-        CLOSE BALANCE-FILE
-    ELSE
-        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
-        MOVE 10000.00 TO WS-BALANCE
-        MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-        DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
-    END-IF
-    DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
-    DISPLAY "Enter sender name: "
-    ACCEPT SENDER
-    DISPLAY "Enter receiver name: "
-    ACCEPT RECEIVER
-    DISPLAY "Enter amount to send: "
-    ACCEPT AMOUNT.
-
-PROCESS-TRANSACTION SECTION.
-    IF AMOUNT IS NUMERIC
-        IF AMOUNT > WS-BALANCE
-            DISPLAY "Insufficient funds. Transaction cancelled."
-        ELSE
-            SUBTRACT AMOUNT FROM WS-BALANCE
-            MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-            DISPLAY "Processing transaction..."
-            DISPLAY "From: " SENDER
-            DISPLAY "To: " RECEIVER
-            MOVE AMOUNT TO WS-DISPLAY-BALANCE
-            DISPLAY "Amount: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE TO WS-DISPLAY-BALANCE
-            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE TO BALANCE-AMOUNT
-            OPEN I-O BALANCE-FILE
-            IF FILE-STATUS = "00"
-                REWRITE BALANCE-RECORD
-                DISPLAY "Rewrite File status: " FILE-STATUS
-                CLOSE BALANCE-FILE
-            ELSE
-                DISPLAY "Failed to rewrite balance.dat. Status: " FILE-STATUS
-            END-IF
-            DISPLAY "Transaction sent successfully!"
-        END-IF
-    ELSE
-        DISPLAY "Invalid amount entered. Must be a number."
-    END-IF.
+    *> Add logic to handle decimal conversion if needed, but for simplicity, rely on PIC alignment.
 
 END PROGRAM XRP-PROCESSOR.
