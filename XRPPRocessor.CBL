@@ -49,7 +49,8 @@ INITIALIZE-BALANCE SECTION.
                 DISPLAY WS-DEBUG-MSG
             NOT AT END
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
-                IF WS-RAW-BALANCE = SPACES OR WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
+                IF WS-RAW-BALANCE = SPACES OR WS-RAW-BALANCE = LOW-VALUES OR
+                   WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
                     MOVE "Invalid or empty balance data, using default 9130." TO WS-DEBUG-MSG
                     DISPLAY WS-DEBUG-MSG
                     MOVE 9130 TO WS-BALANCE-CENTS  *> Default to $91.30
