@@ -142,6 +142,7 @@ PROCESS-TRANSACTION SECTION.
                 DISPLAY "Insufficient funds. Transaction cancelled."
             ELSE
                 COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+                DISPLAY "Debug: WS-BALANCE-DOLLARS = " WS-BALANCE-DOLLARS
                 MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
                 IF WS-BALANCE-DOLLARS = 0
                     MOVE "$0.00" TO WS-DISPLAY-BALANCE
