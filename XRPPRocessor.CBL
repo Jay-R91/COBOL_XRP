@@ -46,7 +46,7 @@ INITIALIZE-BALANCE SECTION.
                 MOVE 0 TO WS-BALANCE-CENTS
             NOT AT END
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
-                IF WS-BALANCE-CENTS = 0
+                IF WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
                     DISPLAY "Invalid balance data in file, using default."
                     MOVE 8548 TO WS-BALANCE-CENTS
                 END-IF
@@ -64,7 +64,15 @@ INITIALIZE-BALANCE SECTION.
         DISPLAY "Error opening balance.dat. Status: " FILE-STATUS
         STOP RUN
     END-IF
-    COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100.
+    COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+    IF WS-BALANCE-DOLLARS = 0
+        MOVE "$0.00" TO WS-DISPLAY-BALANCE
+    ELSE
+        MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
+        STRING "$" DELIMITED BY SIZE
+               WS-FORMAT-BALANCE DELIMITED BY SPACE
+               INTO WS-DISPLAY-BALANCE
+    END-IF.
 
 GET-INPUT SECTION.
     MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
@@ -110,47 +118,52 @@ PROCESS-TRANSACTION SECTION.
         STOP RUN
     ELSE
         COMPUTE WS-AMOUNT-CENTS = AMOUNT * 100
-        IF WS-AMOUNT-CENTS > WS-BALANCE-CENTS
+        IF WS-AMOUNT-CENTS IS NOT NEGATIVE AND WS-AMOUNT-CENTS > WS-BALANCE-CENTS
             DISPLAY "Insufficient funds. Transaction cancelled."
         ELSE
             SUBTRACT WS-AMOUNT-CENTS FROM WS-BALANCE-CENTS
-            COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
-            MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
-            IF WS-BALANCE-DOLLARS = 0
-                MOVE "$0.00" TO WS-DISPLAY-BALANCE
+            IF WS-BALANCE-CENTS < 0
+                ADD WS-AMOUNT-CENTS TO WS-BALANCE-CENTS
+                DISPLAY "Insufficient funds. Transaction cancelled."
             ELSE
-                STRING "$" DELIMITED BY SIZE
-                       WS-FORMAT-BALANCE DELIMITED BY SPACE
-                       INTO WS-DISPLAY-BALANCE
+                COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+                MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
+                IF WS-BALANCE-DOLLARS = 0
+                    MOVE "$0.00" TO WS-DISPLAY-BALANCE
+                ELSE
+                    STRING "$" DELIMITED BY SIZE
+                           WS-FORMAT-BALANCE DELIMITED BY SPACE
+                           INTO WS-DISPLAY-BALANCE
+                END-IF
+                DISPLAY "Processing transaction..."
+                DISPLAY "From: " SENDER
+                DISPLAY "To: " RECEIVER
+                MOVE AMOUNT TO WS-FORMAT-BALANCE
+                IF AMOUNT = 0
+                    MOVE "$0.00" TO WS-DISPLAY-BALANCE
+                ELSE
+                    STRING "$" DELIMITED BY SIZE
+                           WS-FORMAT-BALANCE DELIMITED BY SPACE
+                           INTO WS-DISPLAY-BALANCE
+                END-IF
+                DISPLAY "Amount: " WS-DISPLAY-BALANCE
+                MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
+                IF WS-BALANCE-DOLLARS = 0
+                    MOVE "$0.00" TO WS-DISPLAY-BALANCE
+                ELSE
+                    STRING "$" DELIMITED BY SIZE
+                           WS-FORMAT-BALANCE DELIMITED BY SPACE
+                           INTO WS-DISPLAY-BALANCE
+                END-IF
+                DISPLAY "New Balance: " WS-DISPLAY-BALANCE
+                MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
+                MOVE WS-BALANCE-STR TO BALANCE-RECORD
+                CLOSE BALANCE-FILE
+                OPEN OUTPUT BALANCE-FILE
+                WRITE BALANCE-RECORD
+                CLOSE BALANCE-FILE
+                DISPLAY "Transaction sent successfully!"
             END-IF
-            DISPLAY "Processing transaction..."
-            DISPLAY "From: " SENDER
-            DISPLAY "To: " RECEIVER
-            MOVE AMOUNT TO WS-FORMAT-BALANCE
-            IF AMOUNT = 0
-                MOVE "$0.00" TO WS-DISPLAY-BALANCE
-            ELSE
-                STRING "$" DELIMITED BY SIZE
-                       WS-FORMAT-BALANCE DELIMITED BY SPACE
-                       INTO WS-DISPLAY-BALANCE
-            END-IF
-            DISPLAY "Amount: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
-            IF WS-BALANCE-DOLLARS = 0
-                MOVE "$0.00" TO WS-DISPLAY-BALANCE
-            ELSE
-                STRING "$" DELIMITED BY SIZE
-                       WS-FORMAT-BALANCE DELIMITED BY SPACE
-                       INTO WS-DISPLAY-BALANCE
-            END-IF
-            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
-            MOVE WS-BALANCE-STR TO BALANCE-RECORD
-            CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE
-            WRITE BALANCE-RECORD
-            CLOSE BALANCE-FILE
-            DISPLAY "Transaction sent successfully!"
         END-IF
     END-IF.
 
