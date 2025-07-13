@@ -16,8 +16,8 @@ FD BALANCE-FILE.
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
-01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 8548)
-01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 85.48)
+01 WS-BALANCE-CENTS     PIC 9(7) VALUE 0.  *> Default to 0 cents if not read
+01 WS-BALANCE-DOLLARS   PIC 9(5)V99 VALUE 0.  *> Default to 0.00 if not read
 01 WS-DISPLAY-BALANCE   PIC X(10).   *> Temporary field for formatted output
 01 WS-FORMAT-BALANCE    PIC $$$,$$9.99.  *> Internal formatting without leading spaces
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
@@ -40,7 +40,15 @@ MAIN-PROCEDURE SECTION.
 
 INITIALIZE-BALANCE SECTION.
     OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "35"  *> File not found
+    IF FILE-STATUS = "00"
+        READ BALANCE-FILE INTO WS-RAW-BALANCE
+            AT END
+                MOVE 0 TO WS-BALANCE-CENTS
+            NOT AT END
+                MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
+            END-READ
+        CLOSE BALANCE-FILE
+    ELSE IF FILE-STATUS = "35"  *> File not found
         CLOSE BALANCE-FILE
         OPEN OUTPUT BALANCE-FILE
         MOVE 8548 TO WS-BALANCE-CENTS  *> Default $85.48 as 8548 cents
@@ -49,30 +57,17 @@ INITIALIZE-BALANCE SECTION.
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE
     ELSE
-        CLOSE BALANCE-FILE
-    END-IF.
+        DISPLAY "Error opening balance.dat. Status: " FILE-STATUS
+        STOP RUN
+    END-IF
+    COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100.
 
 GET-INPUT SECTION.
-    OPEN INPUT BALANCE-FILE
-    IF FILE-STATUS = "00"
-        READ BALANCE-FILE INTO WS-RAW-BALANCE
-            AT END
-                DISPLAY "File empty, using default balance."
-                MOVE 8548 TO WS-BALANCE-CENTS
-            NOT AT END
-                MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
-                COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
-                MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
-                STRING "$" DELIMITED BY SIZE
-                       WS-FORMAT-BALANCE DELIMITED BY SPACE
-                       INTO WS-DISPLAY-BALANCE
-                DISPLAY "Read balance: " WS-DISPLAY-BALANCE
-            END-READ
-        CLOSE BALANCE-FILE
-    ELSE
-        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
-        MOVE 85.48 TO WS-BALANCE-DOLLARS
-    END-IF
+    MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
+    STRING "$" DELIMITED BY SIZE
+           WS-FORMAT-BALANCE DELIMITED BY SPACE
+           INTO WS-DISPLAY-BALANCE
+    DISPLAY "Read balance: " WS-DISPLAY-BALANCE
     MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
     STRING "$" DELIMITED BY SIZE
            WS-FORMAT-BALANCE DELIMITED BY SPACE
