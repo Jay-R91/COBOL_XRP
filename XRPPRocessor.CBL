@@ -20,7 +20,7 @@ WORKING-STORAGE SECTION.
 01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 85.48)
 01 WS-DISPLAY-BALANCE   PIC $ZZ,ZZ9.99.  *> Display format (e.g., "$85.48")
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
-01 WS-BALANCE-STR       PIC X(7).    *> 7-character string (corrected from 0000000)
+01 WS-BALANCE-STR       PIC X(7).    *> 7-character string
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 5.00)
@@ -39,7 +39,7 @@ INITIALIZE-BALANCE SECTION.
         CLOSE BALANCE-FILE
         OPEN OUTPUT BALANCE-FILE
         MOVE 8548 TO WS-BALANCE-CENTS  *> Default $85.48 as 8548 cents
-        MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR  *> Numeric to string conversion
+        MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
         MOVE WS-BALANCE-STR TO BALANCE-RECORD
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE
@@ -60,4 +60,45 @@ GET-INPUT SECTION.
                 MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             END-READ
-        CLOSE BALANCE-FILE
+        CLOSE BALANCE-FILE.
+    ELSE
+        DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
+        MOVE 85.48 TO WS-BALANCE-DOLLARS
+    END-IF
+    DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
+    DISPLAY "Enter sender name: "
+    ACCEPT SENDER
+    DISPLAY "Enter receiver name: "
+    ACCEPT RECEIVER
+    DISPLAY "Enter amount to send: "
+    ACCEPT AMOUNT.
+
+PROCESS-TRANSACTION SECTION.
+    IF AMOUNT IS NUMERIC
+        COMPUTE WS-AMOUNT-CENTS = AMOUNT * 100
+        IF WS-AMOUNT-CENTS > WS-BALANCE-CENTS
+            DISPLAY "Insufficient funds. Transaction cancelled."
+        ELSE
+            SUBTRACT WS-AMOUNT-CENTS FROM WS-BALANCE-CENTS
+            COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+            MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
+            DISPLAY "Processing transaction..."
+            DISPLAY "From: " SENDER
+            DISPLAY "To: " RECEIVER
+            MOVE AMOUNT TO WS-DISPLAY-BALANCE
+            DISPLAY "Amount: " WS-DISPLAY-BALANCE
+            MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
+            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
+            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
+            MOVE WS-BALANCE-STR TO BALANCE-RECORD
+            CLOSE BALANCE-FILE
+            OPEN OUTPUT BALANCE-FILE
+            WRITE BALANCE-RECORD
+            CLOSE BALANCE-FILE
+            DISPLAY "Transaction sent successfully!"
+        END-IF
+    ELSE
+        DISPLAY "Invalid amount entered. Must be a number."
+    END-IF.
+
+END PROGRAM XRP-PROCESSOR.
