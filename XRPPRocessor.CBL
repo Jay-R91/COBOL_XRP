@@ -29,6 +29,7 @@ WORKING-STORAGE SECTION.
 01 WS-AMOUNT-INPUT      PIC X(10).   *> Temporary field for raw input
 01 WS-AMOUNT-VALID      PIC X(1) VALUE "N".  *> Flag for input validation
 01 WS-NUM-CHECK          PIC X(10).   *> Temporary field for numeric check
+01 WS-NUM-CHECK-INDEX    PIC 9(2).    *> Index for loop (0-10)
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
