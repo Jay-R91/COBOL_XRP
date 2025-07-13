@@ -86,28 +86,4 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "From: " SENDER
             DISPLAY "To: " RECEIVER
             MOVE AMOUNT TO WS-DISPLAY-BALANCE
-            DISPLAY "Amount: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
-            DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR  *> Convert to 7-digit string
-            DISPLAY "Writing balance to file: " WS-BALANCE-STR  *> Debug output
-            MOVE WS-BALANCE-STR TO BALANCE-RECORD    *> Explicitly set record
-            CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE  *> Overwrite the file
-            WRITE BALANCE-RECORD
-            CLOSE BALANCE-FILE
-            DISPLAY "Transaction sent successfully!"
-        END-IF
-    ELSE
-        DISPLAY "Invalid amount entered. Must be a number."
-    END-IF.
-
-CONVERT-BALANCE SECTION.
-    INSPECT WS-RAW-BALANCE REPLACING ALL " " BY ""
-    INSPECT WS-RAW-BALANCE REPLACING ALL "." BY ""
-    MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
-    IF WS-BALANCE-CENTS < 1000000  *> Ensure reasonable range
-        COMPUTE WS-BALANCE-CENTS = WS-BALANCE-CENTS * 100
-    END-IF.
-
-END PROGRAM XRP-PROCESSOR.
+            DISPLAY "Amount: " WS-DISPLAY
