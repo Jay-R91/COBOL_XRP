@@ -30,6 +30,7 @@ WORKING-STORAGE SECTION.
 01 WS-AMOUNT-VALID      PIC X(1) VALUE "N".  *> Flag for input validation
 01 WS-NUM-CHECK          PIC X(10).   *> Temporary field for numeric check
 01 WS-NUM-CHECK-INDEX    PIC 9(2).    *> Index for loop (0-10)
+01 WS-DEBUG-MSG          PIC X(50).   *> For debugging output
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -44,11 +45,17 @@ INITIALIZE-BALANCE SECTION.
         READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 MOVE 0 TO WS-BALANCE-CENTS
+                MOVE "No data in balance file, using 0." TO WS-DEBUG-MSG
+                DISPLAY WS-DEBUG-MSG
             NOT AT END
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
                 IF WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
-                    DISPLAY "Invalid balance data in file, using default."
+                    MOVE "Invalid balance data, using default 8548." TO WS-DEBUG-MSG
+                    DISPLAY WS-DEBUG-MSG
                     MOVE 8548 TO WS-BALANCE-CENTS
+                ELSE
+                    MOVE "Balance read successfully." TO WS-DEBUG-MSG
+                    DISPLAY WS-DEBUG-MSG
                 END-IF
             END-READ
         CLOSE BALANCE-FILE
@@ -59,16 +66,22 @@ INITIALIZE-BALANCE SECTION.
         MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
         MOVE WS-BALANCE-STR TO BALANCE-RECORD
         WRITE BALANCE-RECORD
+        MOVE "File not found, initialized with 8548." TO WS-DEBUG-MSG
+        DISPLAY WS-DEBUG-MSG
         CLOSE BALANCE-FILE
     ELSE
-        DISPLAY "Error opening balance.dat. Status: " FILE-STATUS
+        MOVE "Error opening balance.dat. Status: " TO WS-DEBUG-MSG
+        STRING WS-DEBUG-MSG DELIMITED BY SPACE
+               FILE-STATUS DELIMITED BY SIZE
+               INTO WS-DEBUG-MSG
+        DISPLAY WS-DEBUG-MSG
         STOP RUN
     END-IF
     COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
+    MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
     IF WS-BALANCE-DOLLARS = 0
         MOVE "$0.00" TO WS-DISPLAY-BALANCE
     ELSE
-        MOVE WS-BALANCE-DOLLARS TO WS-FORMAT-BALANCE
         STRING "$" DELIMITED BY SIZE
                WS-FORMAT-BALANCE DELIMITED BY SPACE
                INTO WS-DISPLAY-BALANCE
@@ -118,10 +131,12 @@ PROCESS-TRANSACTION SECTION.
         STOP RUN
     ELSE
         COMPUTE WS-AMOUNT-CENTS = AMOUNT * 100
+        DISPLAY "Debug: WS-AMOUNT-CENTS = " WS-AMOUNT-CENTS
         IF WS-AMOUNT-CENTS IS NOT NEGATIVE AND WS-AMOUNT-CENTS > WS-BALANCE-CENTS
             DISPLAY "Insufficient funds. Transaction cancelled."
         ELSE
             SUBTRACT WS-AMOUNT-CENTS FROM WS-BALANCE-CENTS
+            DISPLAY "Debug: New WS-BALANCE-CENTS = " WS-BALANCE-CENTS
             IF WS-BALANCE-CENTS < 0
                 ADD WS-AMOUNT-CENTS TO WS-BALANCE-CENTS
                 DISPLAY "Insufficient funds. Transaction cancelled."
@@ -157,6 +172,7 @@ PROCESS-TRANSACTION SECTION.
                 END-IF
                 DISPLAY "New Balance: " WS-DISPLAY-BALANCE
                 MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
+                DISPLAY "Debug: WS-BALANCE-STR = " WS-BALANCE-STR
                 MOVE WS-BALANCE-STR TO BALANCE-RECORD
                 CLOSE BALANCE-FILE
                 OPEN OUTPUT BALANCE-FILE
