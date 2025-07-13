@@ -60,7 +60,7 @@ GET-INPUT SECTION.
                 MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
             END-READ
-        CLOSE BALANCE-FILE.
+        CLOSE BALANCE-FILE
     ELSE
         DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
         MOVE 85.48 TO WS-BALANCE-DOLLARS
