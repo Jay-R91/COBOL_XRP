@@ -18,7 +18,7 @@ WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
 01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 854800)
 01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 8548.00)
-01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Display format (e.g., "$8,548.00")
+01 WS-DISPLAY-BALANCE   PIC ---,---,--9.99.  *> Updated for cleaner display (e.g., $8,548.00)
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
 01 WS-BALANCE-STR       PIC X(7).    *> Formatted 7-digit string
 01 SENDER               PIC X(20).
