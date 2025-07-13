@@ -12,19 +12,18 @@ FILE-CONTROL.
 DATA DIVISION.
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD PIC X(7).  *> 7-digit string for balance in cents (e.g., "0008548")
+01 BALANCE-RECORD PIC X(7).  *> 7-character string for balance (e.g., "0085480")
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
-01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 8548 for $85.48)
+01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 8548)
 01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 85.48)
-01 WS-DISPLAY-BALANCE   PIC $ZZ,ZZ9.99.  *> Clean display (e.g., "$85.48")
-01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
-01 WS-BALANCE-STR       PIC 9(7).    *> 7-digit string for writing
+01 WS-DISPLAY-BALANCE   PIC $ZZ,ZZ9.99.  *> Display format (e.g., "$85.48")
+01 WS-BALANCE-STR       PIC 0000000.  *> 7-digit string with leading zeros
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
-01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 5.00)
-01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 500)
+01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 50.00)
+01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 5000)
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -40,7 +39,7 @@ INITIALIZE-BALANCE SECTION.
         OPEN OUTPUT BALANCE-FILE
         MOVE 8548 TO WS-BALANCE-CENTS  *> Default $85.48 as 8548 cents
         MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
-        STRING WS-BALANCE-STR DELIMITED BY SIZE INTO BALANCE-RECORD
+        MOVE WS-BALANCE-STR TO BALANCE-RECORD  *> Fixed: BAL -> BALANCE-RECORD
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE
     ELSE
@@ -50,12 +49,12 @@ INITIALIZE-BALANCE SECTION.
 GET-INPUT SECTION.
     OPEN INPUT BALANCE-FILE
     IF FILE-STATUS = "00"
-        READ BALANCE-FILE INTO WS-RAW-BALANCE
+        READ BALANCE-FILE INTO WS-BALANCE-STR
             AT END
                 DISPLAY "File empty, using default balance."
                 MOVE 8548 TO WS-BALANCE-CENTS
             NOT AT END
-                MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
+                MOVE FUNCTION NUMVAL(WS-BALANCE-STR) TO WS-BALANCE-CENTS
                 COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
                 MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
@@ -90,7 +89,8 @@ PROCESS-TRANSACTION SECTION.
             MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
             DISPLAY "New Balance: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
-            STRING WS-BALANCE-STR DELIMITED BY SIZE INTO BALANCE-RECORD
+            MOVE WS-BALANCE-STR TO BALANCE-RECORD
+            CLOSE BALANCE-FILE
             OPEN OUTPUT BALANCE-FILE
             WRITE BALANCE-RECORD
             CLOSE BALANCE-FILE
