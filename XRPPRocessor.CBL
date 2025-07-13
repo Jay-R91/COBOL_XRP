@@ -25,6 +25,7 @@ WORKING-STORAGE SECTION.
 01 RECEIVER             PIC X(20).
 01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 5.00)
 01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 500)
+01 WS-AMOUNT-INPUT      PIC X(10).   *> Temporary field for raw input
 01 WS-AMOUNT-VALID      PIC X(1) VALUE "N".  *> Flag for input validation
 
 PROCEDURE DIVISION.
@@ -72,9 +73,11 @@ GET-INPUT SECTION.
     DISPLAY "Enter receiver name: "
     ACCEPT RECEIVER
     DISPLAY "Enter amount to send: "
-    ACCEPT AMOUNT
-    IF AMOUNT IS NOT NUMERIC
+    ACCEPT WS-AMOUNT-INPUT
+    IF WS-AMOUNT-INPUT IS NOT NUMERIC
         MOVE "Y" TO WS-AMOUNT-VALID
+    ELSE
+        MOVE FUNCTION NUMVAL(WS-AMOUNT-INPUT) TO AMOUNT
     END-IF.
 
 PROCESS-TRANSACTION SECTION.
