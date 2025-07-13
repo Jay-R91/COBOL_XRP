@@ -89,8 +89,8 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "Amount: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
             DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR  *> Format with leading zeros
-            INSPECT WS-BALANCE-STR REPLACING ALL " " BY "0"  *> Ensure 7 digits
+            COMPUTE WS-BALANCE-STR = WS-BALANCE-CENTS  *> Ensure 7-digit format
+            INSPECT WS-BALANCE-STR REPLACING ALL " " BY "0"  *> Pad with zeros
             MOVE WS-BALANCE-STR TO BALANCE-RECORD
             CLOSE BALANCE-FILE
             OPEN OUTPUT BALANCE-FILE  *> Overwrite the file
