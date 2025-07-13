@@ -23,8 +23,8 @@ WORKING-STORAGE SECTION.
 01 WS-BALANCE-STR       PIC 0000000.  *> 7-digit string with leading zeros
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
-01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 50.00)
-01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 5000)
+01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 5.00)
+01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 500)
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -40,7 +40,7 @@ INITIALIZE-BALANCE SECTION.
         OPEN OUTPUT BALANCE-FILE
         MOVE 8548 TO WS-BALANCE-CENTS  *> Default $85.48 as 8548 cents
         MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
-        MOVE WS-BALANCE-STR TO BALANCE-RECORD
+        MOVE WS-BALANCE-STR TO BALANCE-RECORD  *> Corrected from BAL
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE
     ELSE
