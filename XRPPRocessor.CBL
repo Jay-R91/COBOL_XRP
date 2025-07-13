@@ -16,11 +16,11 @@ FD BALANCE-FILE.
 
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
-01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 854800)
-01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 8548.00)
+01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 854800 for $8,548.00)
+01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For display (e.g., 8548.00)
 01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Display format (e.g., "$8,548.00")
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
-01 WS-BALANCE-STR       PIC 0000000.  *> 7-digit string with leading zeros
+01 WS-BALANCE-STR       PIC X(7).    *> String for writing to file
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 500.00)
@@ -38,8 +38,9 @@ INITIALIZE-BALANCE SECTION.
     IF FILE-STATUS = "35"  *> File not found
         CLOSE BALANCE-FILE
         OPEN OUTPUT BALANCE-FILE
-        MOVE 9048000 TO WS-BALANCE-CENTS  *> Default $90,480.00 as 9048000 cents
+        MOVE 904800 TO WS-BALANCE-CENTS  *> Default $9,048.00 as 904800 cents
         MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
+        INSPECT WS-BALANCE-STR REPLACING LEADING " " BY "0"
         MOVE WS-BALANCE-STR TO BALANCE-RECORD
         WRITE BALANCE-RECORD
         CLOSE BALANCE-FILE
@@ -53,9 +54,9 @@ GET-INPUT SECTION.
         READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
                 DISPLAY "File empty, using default balance."
-                MOVE 9048000 TO WS-BALANCE-CENTS
+                MOVE 904800 TO WS-BALANCE-CENTS
             NOT AT END
-                PERFORM CONVERT-BALANCE
+                MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
                 COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
                 MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
                 DISPLAY "Read balance: " WS-DISPLAY-BALANCE
@@ -63,7 +64,7 @@ GET-INPUT SECTION.
         CLOSE BALANCE-FILE
     ELSE
         DISPLAY "Failed to open balance.dat. Status: " FILE-STATUS
-        MOVE 90480.00 TO WS-BALANCE-DOLLARS
+        MOVE 9048.00 TO WS-BALANCE-DOLLARS
     END-IF
     DISPLAY "Current Balance: " WS-DISPLAY-BALANCE
     DISPLAY "Enter sender name: "
@@ -89,26 +90,16 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "Amount: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
             DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR  *> Convert to 7-digit string
-            INSPECT WS-BALANCE-STR REPLACING ALL " " BY "0"  *> Ensure 7 digits
-            DISPLAY "Writing balance to file: " WS-BALANCE-STR  *> Debug output
+            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
+            INSPECT WS-BALANCE-STR REPLACING LEADING " " BY "0"
             MOVE WS-BALANCE-STR TO BALANCE-RECORD
-            CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE  *> Overwrite the file
+            OPEN OUTPUT BALANCE-FILE
             WRITE BALANCE-RECORD
             CLOSE BALANCE-FILE
             DISPLAY "Transaction sent successfully!"
         END-IF
     ELSE
         DISPLAY "Invalid amount entered. Must be a number."
-    END-IF.
-
-CONVERT-BALANCE SECTION.
-    INSPECT WS-RAW-BALANCE REPLACING ALL " " BY ""
-    INSPECT WS-RAW-BALANCE REPLACING ALL "." BY ""
-    MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
-    IF WS-BALANCE-CENTS < 1000000  *> Ensure reasonable range
-        COMPUTE WS-BALANCE-CENTS = WS-BALANCE-CENTS * 100
     END-IF.
 
 END PROGRAM XRP-PROCESSOR.
