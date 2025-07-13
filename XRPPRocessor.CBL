@@ -18,13 +18,14 @@ WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
 01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 8548)
 01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 85.48)
-01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Improved display format (e.g., "$100.00")
+01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Improved display format (e.g., "$98.55")
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
 01 WS-BALANCE-STR       PIC X(7).    *> 7-character string
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 5.00)
 01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 500)
+01 WS-AMOUNT-VALID      PIC X(1) VALUE "N".  *> Flag for input validation
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -71,10 +72,16 @@ GET-INPUT SECTION.
     DISPLAY "Enter receiver name: "
     ACCEPT RECEIVER
     DISPLAY "Enter amount to send: "
-    ACCEPT AMOUNT.
+    ACCEPT AMOUNT
+    IF AMOUNT IS NOT NUMERIC
+        MOVE "Y" TO WS-AMOUNT-VALID
+    END-IF.
 
 PROCESS-TRANSACTION SECTION.
-    IF AMOUNT IS NUMERIC
+    IF WS-AMOUNT-VALID = "Y"
+        DISPLAY "Invalid amount entered. Must be a number."
+        STOP RUN
+    ELSE
         COMPUTE WS-AMOUNT-CENTS = AMOUNT * 100
         IF WS-AMOUNT-CENTS > WS-BALANCE-CENTS
             DISPLAY "Insufficient funds. Transaction cancelled."
@@ -97,9 +104,6 @@ PROCESS-TRANSACTION SECTION.
             CLOSE BALANCE-FILE
             DISPLAY "Transaction sent successfully!"
         END-IF
-    ELSE
-        DISPLAY "Invalid amount entered. Must be a number."
-        STOP RUN  *> Exit the program on invalid input
     END-IF.
 
 END PROGRAM XRP-PROCESSOR.
