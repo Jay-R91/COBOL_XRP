@@ -18,9 +18,9 @@ WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
 01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 854800)
 01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 8548.00)
-01 WS-DISPLAY-BALANCE   PIC ---,---,--9.99.  *> Updated for cleaner display (e.g., $8,548.00)
+01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Display format (e.g., "$8,548.00")
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
-01 WS-BALANCE-STR       PIC X(7).    *> Formatted 7-digit string
+01 WS-BALANCE-STR       PIC 0000000.  *> 7-digit string with leading zeros
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
 01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 500.00)
@@ -89,10 +89,11 @@ PROCESS-TRANSACTION SECTION.
             DISPLAY "Amount: " WS-DISPLAY-BALANCE
             MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
             DISPLAY "New Balance: " WS-DISPLAY-BALANCE
-            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR
-            MOVE WS-BALANCE-STR TO BALANCE-RECORD  *> Explicitly set record
+            MOVE WS-BALANCE-CENTS TO WS-BALANCE-STR  *> Format with leading zeros
+            INSPECT WS-BALANCE-STR REPLACING ALL " " BY "0"  *> Ensure 7 digits
+            MOVE WS-BALANCE-STR TO BALANCE-RECORD
             CLOSE BALANCE-FILE
-            OPEN OUTPUT BALANCE-FILE  *> Ensure file is overwritten
+            OPEN OUTPUT BALANCE-FILE  *> Overwrite the file
             WRITE BALANCE-RECORD
             CLOSE BALANCE-FILE
             DISPLAY "Transaction sent successfully!"
