@@ -18,7 +18,7 @@ WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
 01 WS-BALANCE-CENTS     PIC 9(7).    *> Balance in cents (e.g., 8548)
 01 WS-BALANCE-DOLLARS   PIC 9(5)V99. *> For calculations (e.g., 85.48)
-01 WS-DISPLAY-BALANCE   PIC $ZZ,ZZ9.99.  *> Display format (e.g., "$85.48")
+01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Improved display format (e.g., "$100.00")
 01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
 01 WS-BALANCE-STR       PIC X(7).    *> 7-character string
 01 SENDER               PIC X(20).
@@ -99,6 +99,7 @@ PROCESS-TRANSACTION SECTION.
         END-IF
     ELSE
         DISPLAY "Invalid amount entered. Must be a number."
+        STOP RUN  *> Exit the program on invalid input
     END-IF.
 
 END PROGRAM XRP-PROCESSOR.
