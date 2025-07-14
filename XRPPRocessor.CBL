@@ -41,11 +41,11 @@ MAIN-PROCEDURE SECTION.
     STOP RUN.
 
 INITIALIZE-BALANCE SECTION.
+    MOVE 0 TO WS-BALANCE-CENTS  *> Initialize to ensure controlled default
     OPEN INPUT BALANCE-FILE
     IF FILE-STATUS = "00"
         READ BALANCE-FILE INTO WS-RAW-BALANCE
             AT END
-                MOVE 0 TO WS-BALANCE-CENTS
                 MOVE "No data in balance file, using 0." TO WS-DEBUG-MSG
                 DISPLAY WS-DEBUG-MSG
             NOT AT END
