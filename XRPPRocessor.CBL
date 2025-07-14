@@ -31,6 +31,7 @@ WORKING-STORAGE SECTION.
 01 WS-NUM-CHECK          PIC X(10).   *> Temporary field for numeric check
 01 WS-NUM-CHECK-INDEX    PIC 9(2).    *> Index for loop (0-10)
 01 WS-DEBUG-MSG          PIC X(50).   *> For debugging output
+01 WS-ALL-ZERO-CHECK     PIC X(7) VALUE "0000000".  *> Explicit zero check
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
@@ -50,7 +51,7 @@ INITIALIZE-BALANCE SECTION.
             NOT AT END
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
                 IF WS-RAW-BALANCE = SPACES OR WS-RAW-BALANCE = LOW-VALUES OR
-                   WS-RAW-BALANCE = ALL "0" OR WS-BALANCE-CENTS > 9999999
+                   WS-RAW-BALANCE = WS-ALL-ZERO-CHECK OR WS-BALANCE-CENTS > 9999999
                     MOVE "Invalid or zeroed balance data, using default 9130." TO WS-DEBUG-MSG
                     DISPLAY WS-DEBUG-MSG
                     MOVE 9130 TO WS-BALANCE-CENTS  *> Default to $91.30
