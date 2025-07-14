@@ -52,6 +52,7 @@ INITIALIZE-BALANCE SECTION.
                 MOVE WS-RAW-BALANCE TO WS-DEBUG-MSG
                 DISPLAY "Raw balance from file: " WS-DEBUG-MSG
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
+                DISPLAY "Converted WS-BALANCE-CENTS: " WS-BALANCE-CENTS
                 IF WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
                     MOVE "Invalid balance conversion, using default 9130." TO WS-DEBUG-MSG
                     DISPLAY WS-DEBUG-MSG
