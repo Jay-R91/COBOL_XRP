@@ -49,8 +49,17 @@ INITIALIZE-BALANCE SECTION.
                 MOVE "No data in balance file, using 0." TO WS-DEBUG-MSG
                 DISPLAY WS-DEBUG-MSG
             NOT AT END
+                MOVE WS-RAW-BALANCE TO WS-DEBUG-MSG
+                DISPLAY "Raw balance from file: " WS-DEBUG-MSG
                 MOVE FUNCTION NUMVAL(WS-RAW-BALANCE) TO WS-BALANCE-CENTS
-                PERFORM CHECK-ZERO-BALANCE
+                IF WS-RAW-BALANCE = WS-ALL-ZERO-CHECK OR WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
+                    MOVE "Invalid or zeroed balance data, using default 9130." TO WS-DEBUG-MSG
+                    DISPLAY WS-DEBUG-MSG
+                    MOVE 9130 TO WS-BALANCE-CENTS  *> Default to $91.30
+                ELSE
+                    MOVE "Balance read successfully." TO WS-DEBUG-MSG
+                    DISPLAY WS-DEBUG-MSG
+                END-IF
             END-READ
         CLOSE BALANCE-FILE
     ELSE IF FILE-STATUS = "35"  *> File not found
@@ -73,16 +82,6 @@ INITIALIZE-BALANCE SECTION.
     END-IF
     COMPUTE WS-BALANCE-DOLLARS = WS-BALANCE-CENTS / 100
     MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE.
-
-CHECK-ZERO-BALANCE SECTION.
-    IF WS-RAW-BALANCE = WS-ALL-ZERO-CHECK OR WS-BALANCE-CENTS = 0 OR WS-BALANCE-CENTS > 9999999
-        MOVE "Invalid or zeroed balance data, using default 9130." TO WS-DEBUG-MSG
-        DISPLAY WS-DEBUG-MSG
-        MOVE 9130 TO WS-BALANCE-CENTS  *> Default to $91.30
-    ELSE
-        MOVE "Balance read successfully." TO WS-DEBUG-MSG
-        DISPLAY WS-DEBUG-MSG
-    END-IF.
 
 GET-INPUT SECTION.
     MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
