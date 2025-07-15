@@ -4,11 +4,11 @@ PROGRAM-ID. XRP-PROCESSOR.
 ENVIRONMENT DIVISION.
 INPUT-OUTPUT SECTION.
 FILE-CONTROL.
-    SELECT BALANCE-FILE ASSIGN TO "balance.dat"
+    SELECT BALANCE-FILE ASSIGN TO "data/balance.dat"
         ORGANIZATION IS LINE SEQUENTIAL
         ACCESS MODE IS SEQUENTIAL
         FILE STATUS IS FILE-STATUS.
-    SELECT TRANSACTION-LOG ASSIGN TO "transactions.log"
+    SELECT TRANSACTION-LOG ASSIGN TO "data/transactions.log"
         ORGANIZATION IS LINE SEQUENTIAL
         ACCESS MODE IS SEQUENTIAL
         FILE STATUS IS LOG-STATUS.
@@ -16,7 +16,7 @@ FILE-CONTROL.
 DATA DIVISION.
 FILE SECTION.
 FD BALANCE-FILE.
-01 BALANCE-RECORD PIC X(7).  *> 7-character string for balance (e.g., "1000000")
+01 BALANCE-RECORD PIC X(7).
 
 FD TRANSACTION-LOG.
 01 LOG-RECORD PIC X(100).
@@ -24,32 +24,32 @@ FD TRANSACTION-LOG.
 WORKING-STORAGE SECTION.
 01 FILE-STATUS          PIC X(2).
 01 LOG-STATUS           PIC X(2).
-01 WS-BALANCE-CENTS     PIC 9(7) VALUE 0.  *> Default to 0 cents if not read
-01 WS-BALANCE-DOLLARS   PIC 9(5)V99 VALUE 0.  *> Default to 0.00 if not read
-01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.  *> Formatted display field for balance
-01 WS-DISPLAY-AMOUNT    PIC $ZZZ,ZZ9.99.  *> Formatted display field for amount
-01 WS-RAW-BALANCE       PIC X(7).    *> Raw input from file
-01 WS-BALANCE-STR       PIC X(7).    *> 7-character string
+01 WS-BALANCE-CENTS     PIC 9(7) VALUE 0.
+01 WS-BALANCE-DOLLARS   PIC 9(5)V99 VALUE 0.
+01 WS-DISPLAY-BALANCE   PIC $ZZZ,ZZ9.99.
+01 WS-DISPLAY-AMOUNT    PIC $ZZZ,ZZ9.99.
+01 WS-RAW-BALANCE       PIC X(7).
+01 WS-BALANCE-STR       PIC X(7).
 01 SENDER               PIC X(20).
 01 RECEIVER             PIC X(20).
-01 AMOUNT               PIC 9(5)V99. *> Transaction amount (e.g., 5.00)
-01 WS-AMOUNT-CENTS      PIC 9(7).    *> Amount in cents (e.g., 500)
-01 WS-AMOUNT-INPUT      PIC X(10).   *> Temporary field for raw input
-01 WS-AMOUNT-VALID      PIC X(1) VALUE "N".  *> Flag for input validation
-01 WS-NUM-CHECK          PIC X(10).   *> Temporary field for numeric check
-01 WS-NUM-CHECK-INDEX    PIC 9(2).    *> Index for loop (0-10)
-01 WS-ZERO-DISPLAY       PIC $ZZZ,ZZ9.99 VALUE "$      0.00".  *> Exact zero format
-01 WS-CONTINUE           PIC X VALUE "Y".  *> For multi-transaction loop
-01 WS-PASSWORD           PIC X(20).  *> For basic security
-01 WS-LOG-ENTRY          PIC X(100).  *> For transaction log
+01 AMOUNT               PIC 9(5)V99.
+01 WS-AMOUNT-CENTS      PIC 9(7).
+01 WS-AMOUNT-INPUT      PIC X(10).
+01 WS-AMOUNT-VALID      PIC X(1) VALUE "N".
+01 WS-NUM-CHECK          PIC X(10).
+01 WS-NUM-CHECK-INDEX    PIC 9(2).
+01 WS-ZERO-DISPLAY       PIC $ZZZ,ZZ9.99 VALUE "$      0.00".
+01 WS-CONTINUE           PIC X VALUE "Y".
+01 WS-PASSWORD           PIC X(20).
+01 WS-LOG-ENTRY          PIC X(100).
 
 PROCEDURE DIVISION.
 MAIN-PROCEDURE SECTION.
     PERFORM INITIALIZE-BALANCE
-    MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE  *> Ensure display value is set
+    MOVE WS-BALANCE-DOLLARS TO WS-DISPLAY-BALANCE
     DISPLAY "Enter password: "
     ACCEPT WS-PASSWORD
-    IF WS-PASSWORD NOT = "password123"  *> Replace with actual password logic
+    IF WS-PASSWORD NOT = "password123"
         DISPLAY "Invalid password."
         STOP RUN
     END-IF.
