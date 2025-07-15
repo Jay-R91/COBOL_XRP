@@ -1,0 +1,22 @@
+End-User License Agreement (EULA) for COBOL XRP Simulator
+
+This End-User License Agreement ("EULA") is a legal agreement between you ("End-User") and Jay-R91 ("Licensor") for the COBOL XRP Simulator software ("Software"), including source code, Docker image, and related documentation.
+
+1. License Grant
+Licensor grants you a non-exclusive, non-transferable, perpetual license to use the Software for personal or internal business purposes on a single machine, upon payment of $99. This license allows modifications for personal use but does not permit resale, sublicensing, or distribution without Licensor's written permission. You may not reverse-engineer, decompile, or disassemble the Software except as permitted by law.
+
+2. Intellectual Property
+The Software is protected by copyright laws and international treaties. All title and intellectual property rights in the Software (including source code with COPYRIGHT 2025 Jay-R91) remain with Licensor. You agree not to remove or alter any copyright notices.
+
+3. Disclaimer
+This Software is a simulator for educational and demonstration purposes only. It does not transact real XRP or connect to the Ripple network—no blockchain interactions, wallets, or fees are involved. It is not financial advice, investment tool, or real cryptocurrency processor. Licensor disclaims all warranties, express or implied, including fitness for a particular purpose. Use at your own risk; Licensor is not liable for any damages.
+
+4. Termination
+This license terminates if you violate any terms (e.g., unauthorized resale). Upon termination, you must destroy all copies of the Software.
+
+5. Governing Law
+This EULA is governed by U.S. laws. Any disputes shall be resolved in courts of [your state, e.g., California].
+
+By using the Software, you accept this EULA. If you do not agree, do not use it.
+
+COPYRIGHT 2025 Jay-R91. All rights reserved.
